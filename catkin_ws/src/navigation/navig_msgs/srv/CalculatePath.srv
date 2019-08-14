@@ -1,0 +1,6 @@
+geometry_msgs/PoseStamped start
+geometry_msgs/PoseStamped goal
+nav_msgs/OccupancyGrid map
+float32 tolerance
+---
+nav_msgs/Path path
