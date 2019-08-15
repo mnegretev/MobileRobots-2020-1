@@ -17,7 +17,7 @@ $ echo "deb http://packages.openrobotino.org/xenial xenial main" > /etc/apt/sour
 $ exit
 $ sudo apt-get update
 $ sudo apt-get install robotino-api2 robotino-common
-$ sudo apt-get install ros-kinectic-dynamixel-sdk
+$ sudo apt-get install ros-kinetic-dynamixel-sdk
 ```
 Now, you can compile the code:
 ```bash
