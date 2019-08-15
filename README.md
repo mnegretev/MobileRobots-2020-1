@@ -18,6 +18,10 @@ $ exit
 $ sudo apt-get update
 $ sudo apt-get install robotino-api2 robotino-common
 $ sudo apt-get install ros-kinetic-dynamixel-sdk
+$ sudo apt-get install ros-kinetic-serial
+$ sudo apt-get install ros-kinetic-tf2-bullet
+$ sudo apt-get install ros-kinetic-amcl
+$ sudo apt-get install ros-kinetic-map-server
 ```
 Now, you can compile the code:
 ```bash
