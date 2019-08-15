@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#
+# Samuel Ramos Sanchez
 # AUTONOMOUS MOBILE ROBOTS - UNAM, FI, 2020-1
 # PRACTICE 0 - THE PLATFORM ROS 
 #
