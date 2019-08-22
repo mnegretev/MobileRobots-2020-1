@@ -13,13 +13,19 @@ import rospy
 from sensor_msgs.msg   import LaserScan
 from geometry_msgs.msg import Twist
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "Moreno Madrid Maria Guadalupe"
 
 def callback_laser_scan(msg):
     #
     # TODO:
     # Do something to detect if there is an obstacle in front of the robot.
     #
+    global obstacle_detected
+    if msg.ranges[len(msg.ranges)/2]<1.0:
+        print"Obstacle detected"
+        obstacle_detected = True
+    else:
+        obstacle_detected = False
     return
 
 def main():
@@ -28,7 +34,8 @@ def main():
     rospy.Subscriber("/hardware/scan", LaserScan, callback_laser_scan)
     pub_cmd_vel = rospy.Publisher("/hardware/mobile_base/cmd_vel", Twist, queue_size=10)
     loop = rospy.Rate(10)
-    
+    global obstacle_detected
+    obstacle_detected = False
     while not rospy.is_shutdown():
         #
         # TODO:
@@ -36,6 +43,12 @@ def main():
         # Move forward if there is no obstacle in front and stop otherwise.
         # Publish the message.
         #
+        cmd_vel = Twist()
+        if obstacle_detected:
+            cmd_vel.linear.x = 0
+        else:
+            cmd_vel.linear.x = 0.5
+        pub_cmd_vel.publish(cmd_vel)
         loop.sleep()
 
 
