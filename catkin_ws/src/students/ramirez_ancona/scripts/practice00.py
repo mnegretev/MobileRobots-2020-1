@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # AUTONOMOUS MOBILE ROBOTS - UNAM, FI, 2020-1
-# PRACTICE 0 - THE PLATFORM ROS 
+# PRACTICE 0 - THE PLATFORM ROS
 #
 # Instructions:
 # Write a program to move the robot forward until the laser
@@ -15,11 +15,17 @@ from geometry_msgs.msg import Twist
 
 NAME = "ramirez_ancona"
 
-def callback_laser_scan(msg):
+
+def callback_laser_scan(msg): #msg variable tipo LaserScan
     #
     # TODO:
     # Do something to detect if there is an obstacle in front of the robot.
-    #
+    global obstacleDetected
+    if msg.ranges[len(msg.ranges)/2] < 1.0:
+        print "Obstacle detected"
+        obstacleDetected = True
+    else:
+        obstacleDetected = False
     return
 
 def main():
@@ -28,7 +34,9 @@ def main():
     rospy.Subscriber("/hardware/scan", LaserScan, callback_laser_scan)
     pub_cmd_vel = rospy.Publisher("/hardware/mobile_base/cmd_vel", Twist, queue_size=10)
     loop = rospy.Rate(10)
-    
+    cmd_vel = Twist()
+    global obstacleDetected
+    obstacleDetected = False
     while not rospy.is_shutdown():
         #
         # TODO:
@@ -36,6 +44,11 @@ def main():
         # Move forward if there is no obstacle in front and stop otherwise.
         # Publish the message.
         #
+        if obstacleDetected:
+            cmd_vel.linear.x = 0
+        else:
+            cmd_vel.linear.x = 0.5
+        pub_cmd_vel.publish(cmd_vel)
         loop.sleep()
 
 
@@ -44,4 +57,4 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInterruptException:
         pass
-    
+
