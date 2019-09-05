@@ -46,6 +46,7 @@ def callback_bfs(req):
     distances[start_idx]    = 0
     
     while len(open_list) > 0 and current != goal_idx:
+        #here we use the FIFO Policy
         current = open_list.popleft() 
         in_closed_list[current] = True
         neighbors = [current + req.map.info.width, current - req.map.info.width, current + 1, current - 1]
