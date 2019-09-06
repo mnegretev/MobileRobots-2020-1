@@ -8,14 +8,11 @@
 # detects an obstacle in front of it.
 # Required publishers and subscribers are already declared and initialized.
 #
-
 import rospy
 from sensor_msgs.msg   import LaserScan
 from geometry_msgs.msg import Twist
 
 NAME = "Angel_Alvarado"
-
-
 
 def callback_laser_scan(msg):
 	global obstacle_detected    
