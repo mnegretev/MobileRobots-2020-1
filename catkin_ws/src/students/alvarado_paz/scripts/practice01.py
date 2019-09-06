@@ -15,7 +15,7 @@ from navig_msgs.srv import CalculatePath
 from navig_msgs.srv import CalculatePathResponse
 from collections import deque
 
-NAME = "ALVARADO PAZ ANGEL"
+NAME = "ALVARADO_PAZ"
 
 def callback_bfs(req):
     print "Calculating path by breadth first search"
