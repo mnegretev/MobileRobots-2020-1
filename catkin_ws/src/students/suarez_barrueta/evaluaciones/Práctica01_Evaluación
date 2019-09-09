@@ -1,0 +1,6 @@
+Alumno: Suárez Barrueta
+Calificación: 5
+Comentarios:
+El programa sólo ejecuta correctamente el algoritmo de búsqueda a lo ancho
+(el que ya estaba hecho). El método de búsqueda en profundidad siempre arroja
+un error aun cuando la ruta sí se puede calcular. 
