@@ -12,6 +12,7 @@
 
 import sys
 import copy
+import math
 import rospy
 import heapq
 from collections import deque
@@ -79,30 +80,38 @@ def callback_dijkstra(req):
     open_list = []
     in_open_list   = [False]*len(req.map.data)
     in_closed_list = [False]*len(req.map.data)
-    distances      = [sys.maxint]*len(req.map.data)
+    distances      = [1.0]*len(req.map.data)
     parent_nodes   = [-1]*len(req.map.data)
 
-    heapq.heappush(open_list, start_idx)
     in_open_list[start_idx] = True
-    distances[start_idx]    = 0
-    current                 = start_idx
+    distances[start_idx] = 0
+    current = (distances[start_idx], start_idx)
+    heapq.heappush(open_list, current)
 
     while len(open_list) != 0 and current != goal_idx:
-        current = heapq.heappop(open_list)
-        neighbors = [current + req.map.info.width, current - req.map.info.width, current + 1, current - 1]
+        current_distance, current_index = heapq.heappop(open_list)
+        neighbors = [current_index + req.map.info.width, current_index - req.map.info.width, current_index + 1, current_index - 1,
+                     current_index + req.map.info.width + 1, current_index + req.map.info.width - 1,
+                     current_index - req.map.info.width + 1, current_index - req.map.info.width - 1]
+        distances[current_index + req.map.info.width + 1] = math.sqrt(2)
+        distances[current_index + req.map.info.width - 1] = math.sqrt(2)
+        distances[current_index - req.map.info.width + 1] = math.sqrt(2)
+        distances[current_index - req.map.info.width - 1] = math.sqrt(2)
+
         for n in neighbors:
             if req.map.data[n] > 40 or req.map.data[n] < 0:
                 continue
             if not in_open_list[n] and not in_closed_list[n]:
-                heapq.heappush(open_list, n)
                 in_open_list[n] = True
-            if distances[current] + abs(distances[current] - distances[n]) < distances[n]:
-                distances[n] += distances[current] + abs(distances[current] - distances[n])
+            if distances[current_index] + abs(distances[current_index] - distances[n]) < distances[n]:
+                distances[n] += distances[current_index] + abs(distances[current_index] - distances[n])
                 parent_nodes[n] = current
 
-        in_closed_list[current] = True
-        in_open_list[current] = False
-    	steps += 1
+            heapq.heappush(open_list, (distances[n], n))
+
+        in_closed_list[current_index] = True
+        in_open_list[current_index] = False
+        steps += 1
 
     if current != goal_idx:
         print "Cannot calculate path :'("
@@ -129,8 +138,8 @@ def callback_dijkstra(req):
 
 def callback_a_star(req):
     print "Calculating path A-Star" ####
-    map = inflate_map(req.map)
-    map = get_nearness(map)
+    #map = inflate_map(req.map)
+    #map = get_nearness(map)
     steps = 0
     #
     # TODO:
@@ -142,7 +151,50 @@ def callback_a_star(req):
     # Use the 'steps' variable to store the total steps needed for calculations
     # HINT: Use a heap structure to keep track of the node with the smallest f-value
     #
-    
+
+    start_idx  = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
+    start_idx += int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
+    goal_idx   = int((req.goal.pose.position.x  - req.map.info.origin.position.x)/req.map.info.resolution)
+    goal_idx  += int((req.goal.pose.position.y  - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
+
+    open_list = []
+    in_open_list   = [False]*len(req.map.data)
+    in_closed_list = [False]*len(req.map.data)
+    g              = [sys.maxint]*len(req.map.data)
+    h
+    distances      = [sys.maxint] * len(req.map.data)
+    parent_nodes   = [-1]*len(req.map.data)
+
+    heapq.heappush(open_list, start_idx)
+    in_open_list[start_idx] = True
+    g[start_idx]    = 0
+    current                 = start_idx
+
+    while len(open_list) != 0 and current != goal_idx:
+        current = heapq.heappop(open_list)
+        neighbors = [current + req.map.info.width, current - req.map.info.width, current + 1, current - 1,
+                     current + req.map.info.width + 1, current + req.map.info.width - 1,
+                     current - req.map.info.width + 1, current - req.map.info.width - 1]
+        for n in neighbors:
+            if req.map.data[n] > 40 or req.map.data[n] < 0:
+                continue
+            if not in_open_list[n] and not in_closed_list[n]:
+                heapq.heappush(open_list, n)
+                in_open_list[n] = True
+
+
+
+            if g[current] + abs(distances[current] - distances[n]):
+                distances[n] += distances[current] + abs(distances[current] - distances[n])
+                parent_nodes[n] = current
+
+        in_closed_list[current] = True
+        in_open_list[current] = False
+        steps += 1
+
+    if current != goal_idx:
+        print "Cannot calculate path :'("
+        return None
     ####
     print "Path calculated after " + str(steps) + " steps."
     msg_path = Path()
@@ -152,7 +204,12 @@ def callback_a_star(req):
     # Store the resulting path in the 'msg_path' variable
     # Return the appropiate response
     #
-    
+    while parent_nodes[current] != -1:
+        p = PoseStamped()
+        p.pose.position.x = (current%req.map.info.width)*req.map.info.resolution + req.map.info.origin.position.x
+        p.pose.position.y = (current/req.map.info.width)*req.map.info.resolution + req.map.info.origin.position.y
+        msg_path.poses.insert(0,p)
+        current = parent_nodes[current]
     ####
     pub_path = rospy.Publisher('/navigation/path_planning/calculated_path', Path, queue_size=10)
     pub_path.publish(msg_path)
