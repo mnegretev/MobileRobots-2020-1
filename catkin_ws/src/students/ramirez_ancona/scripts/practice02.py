@@ -70,6 +70,55 @@ def callback_dijkstra(req):
     # HINT: Use a heap structure to keep track of the node with the smallest cost function
     #
     
+    start_idx  = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
+    start_idx += int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
+    goal_idx   = int((req.goal.pose.position.x  - req.map.info.origin.position.x)/req.map.info.resolution)
+    goal_idx  += int((req.goal.pose.position.y  - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
+
+    open_list      = []
+    heapq.heapify(open_list)
+    in_open_list   = [False]*len(req.map.data)
+    in_closed_list = [False]*len(req.map.data)
+    distances      = [sys.maxint]*len(req.map.data)
+    parent_nodes   = [-1]*len(req.map.data)
+    
+    current = start_idx
+    #open_list.append(start_idx)
+    heapq.heappush(open_list,start_idx)
+    in_open_list[start_idx] = True
+    distances[start_idx]    = 0
+
+    #print goal_idx
+    
+    
+
+    while len(open_list) > 0 and current != goal_idx:
+        #heapq.heapify(open_list)
+        current = heapq.heappop(open_list)
+        #print "Nodo minimo: "+str(current)
+        in_closed_list[current] = True
+        neighbors = [current + req.map.info.width, current - req.map.info.width, current + 1, current - 1]
+	goal_m = goal_idx - int(current)
+        #print "goal_m: " + str(goal_m)
+        dist = distances[current] + (goal_m)
+	#print "distances[current] "+str(distances[current])        
+	for n in neighbors:
+            if req.map.data[n] > 40 or req.map.data[n] < 0 or in_closed_list[n]:
+                continue
+            if dist < distances[n]:
+                distances[n]    = dist + goal_m
+                parent_nodes[n] = current
+            if not in_open_list[n]:
+                in_open_list[n] = True
+                #open_list.append(n)
+                #print dist
+                heapq.heappush(open_list,n)
+            steps += 1
+
+    if current != goal_idx:
+        print "Cannot calculate path :'("
+        return None    
+
     ####
     print "Path calculated after " + str(steps) + " steps."
     msg_path = Path()
@@ -101,6 +150,57 @@ def callback_a_star(req):
     # HINT: Use a heap structure to keep track of the node with the smallest f-value
     #
     
+    start_idx  = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
+    start_idx += int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
+    goal_idx   = int((req.goal.pose.position.x  - req.map.info.origin.position.x)/req.map.info.resolution)
+    goal_idx  += int((req.goal.pose.position.y  - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
+
+    open_list      = []
+    heapq.heapify(open_list)
+    in_open_list   = [False]*len(req.map.data)
+    in_closed_list = [False]*len(req.map.data)
+    distances      = [sys.maxint]*len(req.map.data)
+    parent_nodes   = [-1]*len(req.map.data)
+    
+    current = start_idx
+    #open_list.append(start_idx)
+    heapq.heappush(open_list,start_idx)
+    in_open_list[start_idx] = True
+    distances[start_idx]    = 0
+
+    #print goal_idx
+    
+    
+
+    while len(open_list) > 0 and current != goal_idx:
+        #heapq.heapify(open_list)
+        current = heapq.heappop(open_list)
+        #print "Nodo minimo: "+str(current)
+        in_closed_list[current] = True
+        neighbors = [current + req.map.info.width, current - req.map.info.width, current + 1, current - 1]
+	goal_m = goal_idx - int(current)
+        #print "goal_m: " + str(goal_m)
+        dist = distances[current] + (goal_m)
+	#print "distances[current] "+str(distances[current])        
+	for n in neighbors:
+            if req.map.data[n] > 40 or req.map.data[n] < 0 or in_closed_list[n]:
+                continue
+            if dist < distances[n]:
+                distances[n]    = dist + goal_m
+		h = goal_m - 1
+		f = distances[n] + h
+                parent_nodes[n] = current
+            if not in_open_list[n]:
+                in_open_list[n] = True
+                #open_list.append(n)
+                #print dist
+                heapq.heappush(open_list,n)
+            steps += 1
+
+    if current != goal_idx:
+        print "Cannot calculate path :'("
+        return None    
+
     ####
     print "Path calculated after " + str(steps) + " steps."
     msg_path = Path()
