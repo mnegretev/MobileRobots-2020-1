@@ -36,7 +36,7 @@ def inflate_map(map):
     # Store the resulting inflated map in 'inflated'
     #
     
-    ####
+    ##
     return inflated
 
 def get_nearness(map):
