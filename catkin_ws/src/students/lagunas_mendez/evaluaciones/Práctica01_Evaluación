@@ -1,0 +1,9 @@
+Alumno: Lagunas Méndez
+Calificación: 5
+Comentarios:
+El programa no calcula correctamente la ruta.
+Se ejecuta correctamente el algoritmos de búsqueda a lo ancho pero
+una vez que se termina la búsqueda no se crea la ruta ni se envía el mensaje
+de tipo nav_msgs::Path
+El cálculo por búsqueda en profundidad no funciona, pues marca que no puede
+calcular rutas cuando BFS sí puede. 
