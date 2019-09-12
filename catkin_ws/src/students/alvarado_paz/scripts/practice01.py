@@ -8,7 +8,7 @@
 # Breadth first search and Depth first search
 #
 import sys
-import rospyhttps://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwj1vq_tjrrkAhUQnq0KHUrBAO4QFjAAegQIBhAC&url=https%3A%2F%2Fwww.cinecalidad.to%2F&usg=AOvVaw32vhloS32Uj9mdY5ver5nr
+import rospy
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
 from navig_msgs.srv import CalculatePath
@@ -17,16 +17,20 @@ from collections import deque
 
 NAME = "ALVARADO_PAZ"
 
+
 def callback_bfs(req):
     print "Calculating path by breadth first search"
     steps = 0
     #
     # TODO:
     # Write a breadth first search algorithm to find a path between the start position
+    # Escriba un algoritmo de búsqueda en primer lugar para encontrar una ruta entre la posición inicial
     # [req.start.pose.position.x, req.start.pose.position.y]
     # and the goal position
+    # y la posición del la meta
     # [req.goal.pose.position.x, req.goal.pose.position.y]
     # Use the 'steps' variable to store the total steps needed for calculations
+    # Use la variable 'pasos' para almacenar el total de pasos necesarios para los cálculos
     #
     start_idx  = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
     start_idx += int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
@@ -82,6 +86,7 @@ def callback_bfs(req):
     pub_path = rospy.Publisher('/navigation/path_planning/calculated_path', Path, queue_size=10)
     pub_path.publish(msg_path)
     return CalculatePathResponse(msg_path)
+
 
 def callback_dfs(req):
     print "Calculating path by depth first search" ####

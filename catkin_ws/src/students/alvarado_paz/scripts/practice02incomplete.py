@@ -35,6 +35,7 @@ def inflate_map(map):
     # Inflate all obstacles in 'map' by 'radius'
     # Store the resulting inflated map in 'inflated'
     #
+    
     ####
     return inflated
 
@@ -68,7 +69,41 @@ def callback_dijkstra(req):
     # Use the 'steps' variable to store the total steps needed for calculations
     # HINT: Use a heap structure to keep track of the node with the smallest cost function
     #
+    start_idx  = int((req.start.pose.position.x - map.info.origin.position.x)/map.info.resolution)
+    start_idx += int((req.start.pose.position.y - map.info.origin.position.y)/map.info.resolution)*map.info.width
+    goal_idx   = int((req.goal.pose.position.x  - map.info.origin.position.x)/map.info.resolution)
+    goal_idx  += int((req.goal.pose.position.y  - map.info.origin.position.y)/map.info.resolution)*map.info.width
     
+    open_list      = []###
+    in_open_list   = [False]*len(map.data)
+    in_closed_list = [False]*len(map.data)
+    distances      = [sys.maxint]*len(map.data)
+    parent_nodes   = [-1]*len(map.data)
+    
+    current = start_idx
+    heapq.heappush(open_list, (0, start_idx))##
+    in_open_list[start_idx] = True
+    distances[start_idx]    = 0
+
+    while len(open_list) > 0 and current != goal_idx:
+        current = heapq.heappop(open_list)[1]##
+        in_closed_list[current] = True
+        neighbors = [current + map.info.width, current - map.info.width, current + 1, current - 1]
+        for n in neighbors:
+            if map.data[n] > 40 or map.data[n] < 0 or in_closed_list[n]:
+                continue
+            dist = distances[current] + 1 + map.data[n]##
+            if dist < distances[n]:
+                distances[n]    = dist
+                parent_nodes[n] = current
+            if not in_open_list[n]:
+                in_open_list[n] = True
+                heapq.heappush(open_list, (dist, n))###
+            steps += 1
+
+    if current != goal_idx:
+        print "Cannot calculate path :'("
+        return None
     ####
     print "Path calculated after " + str(steps) + " steps."
     msg_path = Path()
@@ -78,7 +113,12 @@ def callback_dijkstra(req):
     # Store the resulting path in the 'msg_path' variable
     # Return the appropiate response
     # 
-    
+    while parent_nodes[current] != -1:
+        p = PoseStamped()
+        p.pose.position.x = (current%map.info.width)*map.info.resolution + map.info.origin.position.x
+        p.pose.position.y = (current/map.info.width)*map.info.resolution + map.info.origin.position.y
+        msg_path.poses.insert(0,p)
+        current = parent_nodes[current]
     ####
     pub_path = rospy.Publisher('/navigation/path_planning/calculated_path', Path, queue_size=10)
     pub_path.publish(msg_path)
@@ -99,7 +139,45 @@ def callback_a_star(req):
     # Use the 'steps' variable to store the total steps needed for calculations
     # HINT: Use a heap structure to keep track of the node with the smallest f-value
     #
+    start_idx  = int((req.start.pose.position.x - map.info.origin.position.x)/map.info.resolution)
+    start_idx += int((req.start.pose.position.y - map.info.origin.position.y)/map.info.resolution)*map.info.width
+    goal_idx   = int((req.goal.pose.position.x  - map.info.origin.position.x)/map.info.resolution)
+    goal_idx  += int((req.goal.pose.position.y  - map.info.origin.position.y)/map.info.resolution)*map.info.width
     
+    open_list      = []#####
+    in_open_list   = [False]*len(map.data)
+    in_closed_list = [False]*len(map.data)
+    distances      = [sys.maxint]*len(map.data)
+    parent_nodes   = [-1]*len(map.data)
+    
+    current = start_idx
+    heapq.heappush(open_list, (0, start_idx))##
+    in_open_list[start_idx] = True
+    distances[start_idx]    = 0
+
+    while len(open_list) > 0 and current != goal_idx:
+        current = heapq.heappop(open_list)[1]##
+        in_closed_list[current] = True
+        neighbors = [current + map.info.width, current - map.info.width, current + 1, current - 1]
+        for n in neighbors:
+            if map.data[n] > 40 or map.data[n] < 0 or in_closed_list[n]:
+                continue
+            dist = distances[current] + 1 + int(map.data[n]/5.0)##
+            f_value = sys.maxint
+            if dist < distances[n]:
+                h  = abs(n%map.info.width - goal_idx%map.info.width);
+		h += abs(n/map.info.width - goal_idx/map.info.width);
+                distances[n]    = dist
+                parent_nodes[n] = current
+                f_value = dist + h
+            if not in_open_list[n]:
+                in_open_list[n] = True
+                heapq.heappush(open_list, (f_value, n))###
+            steps += 1
+
+    if current != goal_idx:
+        print "Cannot calculate path :'("
+        return None
     ####
     print "Path calculated after " + str(steps) + " steps."
     msg_path = Path()
@@ -109,7 +187,12 @@ def callback_a_star(req):
     # Store the resulting path in the 'msg_path' variable
     # Return the appropiate response
     #
-    
+    while parent_nodes[current] != -1:
+        p = PoseStamped()
+        p.pose.position.x = (current%map.info.width)*map.info.resolution + map.info.origin.position.x
+        p.pose.position.y = (current/map.info.width)*map.info.resolution + map.info.origin.position.y
+        msg_path.poses.insert(0,p)
+        current = parent_nodes[current]
     ####
     pub_path = rospy.Publisher('/navigation/path_planning/calculated_path', Path, queue_size=10)
     pub_path.publish(msg_path)
