@@ -21,7 +21,7 @@ from nav_msgs.msg import Path
 from navig_msgs.srv import CalculatePath
 from navig_msgs.srv import CalculatePathResponse
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "CRUZ_NAVARRETE"
 
 def inflate_map(map):
     if rospy.has_param("/navigation/path_planning/inflation_radius"):
