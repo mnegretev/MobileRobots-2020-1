@@ -35,7 +35,16 @@ def inflate_map(map):
     # Inflate all obstacles in 'map' by 'radius'
     # Store the resulting inflated map in 'inflated'
     #
-    
+    inflated.info = copy.deepcopy(map.info)
+    inflated.data = copy.deepcopy(map.data)
+    n = int(radius/map.info.resolution)
+    for i in range(len(map.data)):
+        if map.data[i] == 100:
+            for j in range(-n, n):
+                if (i + j) <= (len(inflated.data)) or (i + j + inflated.info.width) <= (len(inflated.data)) or (i + j - inflated.info.width) <= (len(inflated.data)):
+                    inflated.data[i + j] = 100
+                    inflated.data[i + j + inflated.info.width] = 100
+                    inflated.data[i + j - inflated.info.width] = 100
     ####
     return inflated
 
@@ -56,7 +65,7 @@ def get_nearness(map):
 
 def callback_dijkstra(req):
     print "Calculating path by Dijkstra search"
-    #map = inflate_map(req.map)
+    map = inflate_map(req.map)
     #map = get_nearness(map)
     steps = 0
     #
@@ -70,16 +79,16 @@ def callback_dijkstra(req):
     # HINT: Use a heap structure to keep track of the node with the smallest cost function
     #
     
-    start_idx  = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
-    start_idx += int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
-    goal_idx   = int((req.goal.pose.position.x  - req.map.info.origin.position.x)/req.map.info.resolution)
-    goal_idx  += int((req.goal.pose.position.y  - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
+    start_idx  = int((req.start.pose.position.x - map.info.origin.position.x)/map.info.resolution)
+    start_idx += int((req.start.pose.position.y - map.info.origin.position.y)/map.info.resolution)*map.info.width
+    goal_idx   = int((req.goal.pose.position.x  - map.info.origin.position.x)/map.info.resolution)
+    goal_idx  += int((req.goal.pose.position.y  - map.info.origin.position.y)/map.info.resolution)*map.info.width
 
     open_list = []
-    in_open_list   = [False]*len(req.map.data)
-    in_closed_list = [False]*len(req.map.data)
-    distances      = [sys.maxint]*len(req.map.data)
-    parent_nodes   = [-1]*len(req.map.data)
+    in_open_list   = [False]*len(map.data)
+    in_closed_list = [False]*len(map.data)
+    distances      = [sys.maxint]*len(map.data)
+    parent_nodes   = [-1]*len(map.data)
 
     current_index = start_idx
     in_open_list[current_index] = True
@@ -90,12 +99,12 @@ def callback_dijkstra(req):
         current_index = heapq.heappop(open_list)[1]
         in_closed_list[current_index] = True
         in_open_list[current_index] = False
-        neighbors = [current_index + req.map.info.width, current_index - req.map.info.width, current_index + 1, current_index - 1]
+        neighbors = [current_index + map.info.width, current_index - map.info.width, current_index + 1, current_index - 1]
 
         for n in neighbors:
-            if req.map.data[n] > 40 or req.map.data[n] < 0 or in_closed_list[n]:
+            if map.data[n] > 40 or map.data[n] < 0 or in_closed_list[n]:
                 continue
-            dist = distances[current_index] + 1 + req.map.data[n]
+            dist = distances[current_index] + 1 + map.data[n]
             if dist < distances[n]:
                 distances[n]    = dist
                 parent_nodes[n] = current_index
@@ -118,8 +127,8 @@ def callback_dijkstra(req):
     # 
     while parent_nodes[current_index] != -1:
         p = PoseStamped()
-        p.pose.position.x = (current_index%req.map.info.width)*req.map.info.resolution + req.map.info.origin.position.x
-        p.pose.position.y = (current_index/req.map.info.width)*req.map.info.resolution + req.map.info.origin.position.y
+        p.pose.position.x = (current_index%map.info.width)*map.info.resolution + map.info.origin.position.x
+        p.pose.position.y = (current_index/map.info.width)*map.info.resolution + map.info.origin.position.y
         msg_path.poses.insert(0,p)
         current_index = parent_nodes[current_index]
     ####
