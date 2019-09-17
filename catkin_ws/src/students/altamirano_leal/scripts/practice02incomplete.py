@@ -13,7 +13,7 @@
 import sys
 import copy
 import rospy
-import heapq    #Arbol para cola dinamica
+import heapq
 from collections import deque
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import OccupancyGrid
@@ -21,8 +21,7 @@ from nav_msgs.msg import Path
 from navig_msgs.srv import CalculatePath
 from navig_msgs.srv import CalculatePathResponse
 
-NAME = "Altamirano_Leal"
-
+NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
 
 def inflate_map(map):
     if rospy.has_param("/navigation/path_planning/inflation_radius"):
@@ -37,34 +36,8 @@ def inflate_map(map):
     # Store the resulting inflated map in 'inflated'
     #
     
-    celda = int(radius/map.info.resulting)
-    w = (2*celda+1)*(2*celda+1)
-    v = [0]*(w) ##declaramos el ancho del mapa
-
-    #print str(inflated)
-    #creamos un mapa 
-    for i in range(-(celada),(celda))
-        casilla =0
-        for j range(-(celada),(celda))
-                neighobros[casilla] = j*map.info.width+i #declaramos los vesinos como 
-                casilla +=1
-    for n in range(len(map.data)):
-        if map.data[n] ==100
-            for j in range(neighobros)
-                inflated.data[i+neighobros[j]]=100#indice
-
-
-
     ####
     return inflated
-
-
-
-
-
-
-
-
 
 def get_nearness(map):
     if rospy.has_param("/navigation/path_planning/nearness_radius"):
@@ -79,48 +52,13 @@ def get_nearness(map):
     # contain a number indicating the distance to such obstacles
     # Store the resulting map in 'nearness'
     #
-    if radius <= 0:
-    return map;
-    steps = int(radius / map.info.resolution)
-
-    tamaño = (steps*2 + 1) * (steps*2 + 1)
-    distances = [0]*tamaño
-    neighbors = [0]*tamaño
-
-    casilla = 0
-    
-    for i in range(-steps,steps):
-        for j in range(-steps,steps):
-            neighbors[casilla] = i*map.info.width + j
-            distances[casilla] = (steps - max(abs(i), (j)) + 1)
-            casilla += 1
-
-    for i in range(len(map.data)):
-        if map.data[i] == 100:
-        for j in range(tamaño):
-            if nearness.data[i + neigbors[j]] < distances[j]:
-                nearness.data[i+neighbors[j]] = distances[j]
-    
-    
-
     return nearness
-
-
-
-
-
-
-
-
-
 
 def callback_dijkstra(req):
     print "Calculating path by Dijkstra search"###
-    map = inflate_map(req.map)  #mapa inflado 
-    map = get_nearness(map)     #mapa con valor de sercania 
-    #map.data[n] revisa el valo de sercania 
+    map = inflate_map(req.map)
+    map = get_nearness(map)
     steps = 0
-
     #
     # TODO:
     # Write a Dijkstra algorithm to find a path between the start position
@@ -131,10 +69,6 @@ def callback_dijkstra(req):
     # Use the 'steps' variable to store the total steps needed for calculations
     # HINT: Use a heap structure to keep track of the node with the smallest cost function
     #
-    
-    ####
-
-    #declaramos las variables Ni
     start_idx  = int((req.start.pose.position.x - map.info.origin.position.x)/map.info.resolution)
     start_idx += int((req.start.pose.position.y - map.info.origin.position.y)/map.info.resolution)*map.info.width
     goal_idx   = int((req.goal.pose.position.x  - map.info.origin.position.x)/map.info.resolution)
@@ -190,23 +124,6 @@ def callback_dijkstra(req):
     pub_path.publish(msg_path)
     return CalculatePathResponse(msg_path)
 
-
-
-
-    print "Path calculated after " + str(steps) + " steps."
-    msg_path = Path()
-    msg_path.header.frame_id = "map"
-    #
-    # TODO:
-    # Store the resulting path in the 'msg_path' variable
-    # Return the appropiate response
-    # 
-    
-    ####
-    pub_path = rospy.Publisher('/navigation/path_planning/calculated_path', Path, queue_size=10)
-    pub_path.publish(msg_path)
-    return CalculatePathResponse(msg_path)
-
 def callback_a_star(req):
     print "Calculating path A-Star" ####
     map = inflate_map(req.map)
@@ -249,7 +166,7 @@ def callback_a_star(req):
             f_value = sys.maxint
             if dist < distances[n]:
                 h  = abs(n%map.info.width - goal_idx%map.info.width);
-                h += abs(n/map.info.width - goal_idx/map.info.width);
+		h += abs(n/map.info.width - goal_idx/map.info.width);
                 distances[n]    = dist
                 parent_nodes[n] = current
                 f_value = dist + h
