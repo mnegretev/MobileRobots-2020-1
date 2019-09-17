@@ -35,16 +35,16 @@ def inflate_map(map):
     # Inflate all obstacles in 'map' by 'radius'
     # Store the resulting inflated map in 'inflated'
     #
-    inflated.info = copy.deepcopy(map.info)
-    inflated.data = copy.deepcopy(map.data)
     n = int(radius/map.info.resolution)
+    inflated.info = copy.deepcopy(map.info)
+    for i in range(len(map.data)):
+        inflated.data.append(0)
+
     for i in range(len(map.data)):
         if map.data[i] == 100:
-            for j in range(-n, n):
-                if (i + j) <= (len(inflated.data)) or (i + j + inflated.info.width) <= (len(inflated.data)) or (i + j - inflated.info.width) <= (len(inflated.data)):
-                    inflated.data[i + j] = 100
-                    inflated.data[i + j + inflated.info.width] = 100
-                    inflated.data[i + j - inflated.info.width] = 100
+            for j in range(-n, n+1):
+                for m in range(-n, n+1):
+                    inflated.data[(j * inflated.info.width) + m] = 100
     ####
     return inflated
 
