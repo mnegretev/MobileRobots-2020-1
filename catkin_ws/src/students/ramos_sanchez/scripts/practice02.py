@@ -37,14 +37,16 @@ def inflate_map(map):
     #
     n = int(radius/map.info.resolution)
     inflated.info = copy.deepcopy(map.info)
-    for i in range(len(map.data)):
+    for j in range(len(map.data)):
         inflated.data.append(0)
 
     for i in range(len(map.data)):
+        if map.data[i] == -1:
+            inflated.data[i] = -1
         if map.data[i] == 100:
             for j in range(-n, n+1):
                 for m in range(-n, n+1):
-                    inflated.data[(j * inflated.info.width) + m] = 100
+                    inflated.data[(j * inflated.info.width) + m +i] = 100
     ####
     return inflated
 
