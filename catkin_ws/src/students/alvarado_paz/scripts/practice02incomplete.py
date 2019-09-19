@@ -21,7 +21,7 @@ from nav_msgs.msg import Path
 from navig_msgs.srv import CalculatePath
 from navig_msgs.srv import CalculatePathResponse
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "Alvarado_Paz"
 
 def inflate_map(map):
     if rospy.has_param("/navigation/path_planning/inflation_radius"):
@@ -30,6 +30,10 @@ def inflate_map(map):
         radius = 1.0        
     print "Inflating map by " + str(radius) + " meters"
     inflated = OccupancyGrid()
+    inflation_cells = (radius / map.info.resolution);
+    # Me falto implementar los 2 fors para iflar los obstaculos
+    # y otro para devolver el mapa nuevo con los obstaculos inflados
+
     #
     # TODO:
     # Inflate all obstacles in 'map' by 'radius'
@@ -46,17 +50,43 @@ def get_nearness(map):
         radius = 1.0
     print "Calculating nearness for a radius of " + str(radius) + " m"
     nearness = OccupancyGrid()
+    # 
+    steps = (radius/map.info.resolution)
+    boxSize = (steps*2 + 1)*(steps*2 + 1)
+    distances = boxSize
+    neighbors = boxSize
+    counter = 0
+    i = -steps
+    j = -steps
+    for i in steps:
+        for j in steps:
+            neighbors[counter] = i*map.info.width + j
+            distances[counter] = (steps - max(i, abs(j)) + 1)
+            counter += 1
+
+    a = 0
+    for a in [sys.maxint]*len(map.data[a]):
+        if map.data[i] > 40:
+            b = 0
+            for b in boxSize:
+                if (nearness.data[i + neighbors[j]] < distances[j]):
+                    nearness.data[i + neighbors[j]] = distances[j]
+    
     #
     # TODO:
     # Get a map where all free cells within a 'radius' distance from an obstacle
     # contain a number indicating the distance to such obstacles
     # Store the resulting map in 'nearness'
     #
+    # Obtenga un mapa donde todas las celdas libres dentro de una distancia de
+    # 'radio' de un obstaculo
+    # contenga un numero que indique la distancia a tales obstaculos
+    # Almacene el mapa resultante en 'proximidad'
     return nearness
 
 def callback_dijkstra(req):
     print "Calculating path by Dijkstra search"###
-    map = inflate_map(req.map)
+    # map = inflate_map(req.map)
     map = get_nearness(map)
     steps = 0
     #
