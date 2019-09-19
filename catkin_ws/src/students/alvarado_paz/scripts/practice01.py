@@ -24,13 +24,13 @@ def callback_bfs(req):
     #
     # TODO:
     # Write a breadth first search algorithm to find a path between the start position
-    # Escriba un algoritmo de búsqueda en primer lugar para encontrar una ruta entre la posición inicial
+    # Escriba un algoritmo de busqueda en primer lugar para encontrar una ruta entre la posicion inicial
     # [req.start.pose.position.x, req.start.pose.position.y]
     # and the goal position
-    # y la posición del la meta
+    # y la posicion del la meta
     # [req.goal.pose.position.x, req.goal.pose.position.y]
     # Use the 'steps' variable to store the total steps needed for calculations
-    # Use la variable 'pasos' para almacenar el total de pasos necesarios para los cálculos
+    # Use la variable 'pasos' para almacenar el total de pasos necesarios para los calculos
     #
     start_idx  = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
     start_idx += int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
