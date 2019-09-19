@@ -86,7 +86,7 @@ def get_nearness(map):
 
 def callback_dijkstra(req):
     print "Calculating path by Dijkstra search"###
-    # map = inflate_map(req.map)
+    map = inflate_map(req.map)
     map = get_nearness(map)
     steps = 0
     #
