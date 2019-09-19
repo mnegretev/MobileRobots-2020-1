@@ -37,7 +37,7 @@ def inflate_map(map):
     #
     n = int(radius/map.info.resolution)
     inflated.info = copy.deepcopy(map.info)
-    for j in range(len(map.data)):
+    for i in range(len(map.data)):
         inflated.data.append(0)
 
     for i in range(len(map.data)):
@@ -63,12 +63,32 @@ def get_nearness(map):
     # contain a number indicating the distance to such obstacles
     # Store the resulting map in 'nearness'
     #
+    n = int(radius/map.info.resolution)
+    nearness.info = copy.deepcopy(map.info)
+    width = nearness.info.width
+    counter = 1 - n
+
+    for i in range(len(map.data)):
+        nearness.data.append(1)
+        if map.data[i] == -1:
+            nearness.data[i] = -1
+        elif map.data[i] == 100:
+            nearness.data[i] = 100
+
+    for i in range(len(map.data)):
+        if nearness.data[i] == 100:
+            for j in range(-n, n + 1):
+                counter = +1
+                for m in range(-n, n + 1):
+                    if nearness.data[(j * width) + m + i] == 0:
+                        nearness.data[(j * width) + m + i] = n - abs(counter)
+            counter = 1 - n
     return nearness
 
 def callback_dijkstra(req):
     print "Calculating path by Dijkstra search"
     map = inflate_map(req.map)
-    #map = get_nearness(map)
+    map = get_nearness(map)
     steps = 0
     #
     # TODO:
