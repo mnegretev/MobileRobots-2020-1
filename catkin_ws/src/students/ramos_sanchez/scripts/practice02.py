@@ -160,8 +160,8 @@ def callback_dijkstra(req):
 
 def callback_a_star(req):
     print "Calculating path A-Star" ####
-    #map = inflate_map(req.map)
-    #map = get_nearness(map)
+    map = inflate_map(req.map)
+    map = get_nearness(map)
     steps = 0
     #
     # TODO:
@@ -173,16 +173,16 @@ def callback_a_star(req):
     # Use the 'steps' variable to store the total steps needed for calculations
     # HINT: Use a heap structure to keep track of the node with the smallest f-value
     #
-    start_idx  = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
-    start_idx += int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
-    goal_idx   = int((req.goal.pose.position.x  - req.map.info.origin.position.x)/req.map.info.resolution)
-    goal_idx  += int((req.goal.pose.position.y  - req.map.info.origin.position.y)/req.map.info.resolution)*req.map.info.width
+    start_idx  = int((req.start.pose.position.x - map.info.origin.position.x)/map.info.resolution)
+    start_idx += int((req.start.pose.position.y - map.info.origin.position.y)/map.info.resolution)*map.info.width
+    goal_idx   = int((req.goal.pose.position.x  - map.info.origin.position.x)/map.info.resolution)
+    goal_idx  += int((req.goal.pose.position.y  - map.info.origin.position.y)/map.info.resolution)*map.info.width
 
     open_list = []
-    in_open_list   = [False]*len(req.map.data)
-    in_closed_list = [False]*len(req.map.data)
-    g              = [sys.maxint] * len(req.map.data)
-    parent_nodes   = [-1]*len(req.map.data)
+    in_open_list   = [False]*len(map.data)
+    in_closed_list = [False]*len(map.data)
+    g              = [sys.maxint] * len(map.data)
+    parent_nodes   = [-1]*len(map.data)
 
     current = start_idx
     in_open_list[current] = True
@@ -193,15 +193,15 @@ def callback_a_star(req):
         current = heapq.heappop(open_list)[1]
         in_closed_list[current] = True
         in_open_list[current] = False
-        neighbors = [current + req.map.info.width, current - req.map.info.width, current + 1, current - 1]
+        neighbors = [current + map.info.width, current - map.info.width, current + 1, current - 1]
         for n in neighbors:
-            if req.map.data[n] > 40 or req.map.data[n] < 0 or in_closed_list[n]:
+            if map.data[n] > 40 or map.data[n] < 0 or in_closed_list[n]:
                 continue
-            dist = g[current] + 1 + int(req.map.data[n])
+            dist = g[current] + 1 + int(map.data[n])
             f_value = sys.maxint
             if dist < g[n]:
-                h  = abs(n%req.map.info.width - goal_idx%req.map.info.width);
-		h += abs(n/req.map.info.width - goal_idx/req.map.info.width);
+                h  = abs(n%map.info.width - goal_idx%map.info.width);
+		h += abs(n/map.info.width - goal_idx/map.info.width);
                 g[n]    = dist
                 parent_nodes[n] = current
                 f_value = dist + h
@@ -224,8 +224,8 @@ def callback_a_star(req):
     #
     while parent_nodes[current] != -1:
         p = PoseStamped()
-        p.pose.position.x = (current%req.map.info.width)*req.map.info.resolution + req.map.info.origin.position.x
-        p.pose.position.y = (current/req.map.info.width)*req.map.info.resolution + req.map.info.origin.position.y
+        p.pose.position.x = (current%map.info.width)*map.info.resolution + map.info.origin.position.x
+        p.pose.position.y = (current/map.info.width)*map.info.resolution + map.info.origin.position.y
         msg_path.poses.insert(0,p)
         current = parent_nodes[current]
     ####
