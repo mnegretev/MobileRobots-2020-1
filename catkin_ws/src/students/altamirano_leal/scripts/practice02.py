@@ -43,14 +43,14 @@ def inflate_map(map):
 
     #print str(inflated)
     #creamos un mapa 
-    for i in range(-(celada),(celda))
+    for i in range(-(celada),(celda)):
         casilla =0
-        for j range(-(celada),(celda))
+        for j in range(-(celada),(celda)):
                 neighobros[casilla] = j*map.info.width+i #declaramos los vesinos como 
                 casilla +=1
     for n in range(len(map.data)):
         if map.data[n] ==100
-            for j in range(neighobros)
+            for j in range(neighobros):
                 inflated.data[i+neighobros[j]]=100#indice
 
 
