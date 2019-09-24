@@ -8,7 +8,6 @@
 # Consider a differential base. Max linear and angular speeds
 # must be 0.8 and 1.0 respectively.
 #
-
 import sys
 import rospy
 import tf

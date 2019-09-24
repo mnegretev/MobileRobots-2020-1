@@ -17,7 +17,6 @@ from collections import deque
 
 NAME = "ALVARADO_PAZ"
 
-
 def callback_bfs(req):
     print "Calculating path by breadth first search"
     steps = 0

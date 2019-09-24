@@ -9,7 +9,6 @@
 # Before planning, map obstacles must be inflated and nearness should be taken into account
 # as part of the cost function.
 #
-
 import sys
 import copy
 import rospy
