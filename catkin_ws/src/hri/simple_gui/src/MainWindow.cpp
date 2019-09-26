@@ -152,7 +152,8 @@ void MainWindow::btnCmdVelReleased()
     qtRosNode->stop_publishing_cmd_vel();
 }
 
-void MainWindow::navBtnCalcPath_pressed()
+
+bool MainWindow::calculate_path(nav_msgs::Path& resulting_path)
 {
     float startX = 0;
     float startY = 0;
@@ -177,13 +178,13 @@ void MainWindow::navBtnCalcPath_pressed()
         if(!(ssStartX >> startX) || !(ssStartY >> startY))
         {
             this->ui->navTxtStartPose->setText("Invalid format");
-            return;
+            return false;
         }
     }
     else
     {
 	this->ui->navTxtStartPose->setText("Invalid format");
-	return;
+	return false;
     }
 	
     str = this->ui->navTxtGoalPose->text().toStdString();
@@ -196,13 +197,13 @@ void MainWindow::navBtnCalcPath_pressed()
         if(!(ssGoalX >> goalX) || !(ssGoalY >> goalY))
         {
             this->ui->navTxtGoalPose->setText("Invalid format");
-            return;
+            return false;
         }
     }
     else
     {
 	this->ui->navTxtGoalPose->setText("Invalid format");
-	return;
+	return false;
     }
 
     nav_msgs::Path path;
@@ -229,42 +230,22 @@ void MainWindow::navBtnCalcPath_pressed()
     }
     if(success)
         qtRosNode->call_smooth_path(path, path);
+
+    resulting_path = path;
+    return true;
+}
+
+void MainWindow::navBtnCalcPath_pressed()
+{
+    nav_msgs::Path path;
+    calculate_path(path);
 }
 
 void MainWindow::navBtnExecPath_pressed()
 {
-    float goalX = 0;
-    float goalY = 0;
-    float goalA = 0;
-    std::vector<std::string> parts;
-    std::string str = this->ui->navTxtGoalPose->text().toStdString();
-    boost::algorithm::to_lower(str);
-    boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
-    if(parts.size() >= 2)
-    {
-        std::stringstream ssGoalX(parts[0]);
-        std::stringstream ssGoalY(parts[1]);
-        if(!(ssGoalX >> goalX) || !(ssGoalY >> goalY))
-        {
-            this->ui->navTxtGoalPose->setText("Invalid format");
-            return;
-        }
-	if(parts.size() >= 3)
-	{
-	    std::stringstream ssGoalA(parts[2]);
-	    if(!(ssGoalA >> goalA))
-	    {
-		this->ui->navTxtGoalPose->setText("Invalid Format");
-		return;
-	    }
-	}
-    }
-    else
-    {
-	this->ui->navTxtGoalPose->setText("Invalid format");
-	return;
-    }
-    qtRosNode->publish_goto_xya(goalX, goalY, goalA);
+    nav_msgs::Path path;
+    if(calculate_path(path))
+        qtRosNode->publish_goal_path(path);
 }
 
 void MainWindow::navRadioButtonCliked()
