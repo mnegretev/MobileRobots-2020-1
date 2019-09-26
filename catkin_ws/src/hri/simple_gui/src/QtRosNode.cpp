@@ -20,7 +20,7 @@ void QtRosNode::run()
 {    
     ros::Rate loop(30);
     pubCmdVel    = n->advertise<geometry_msgs::Twist>("/hardware/mobile_base/cmd_vel", 10);
-    pubGoToXYA   = n->advertise<std_msgs::Float32MultiArray>("/navigation/go_to_xya", 10);
+    pubFollowPath= n->advertise<nav_msgs::Path>("/navigation/simple_move/follow_path", 10);
     cltBFS       = n->serviceClient<navig_msgs::CalculatePath>("/navigation/path_planning/breadth_first_search");
     cltDFS       = n->serviceClient<navig_msgs::CalculatePath>("/navigation/path_planning/depth_first_search");
     cltDijkstra  = n->serviceClient<navig_msgs::CalculatePath>("/navigation/path_planning/dijkstra_search");
@@ -162,12 +162,13 @@ bool QtRosNode::call_a_star_search(float start_x, float start_y, float goal_x, f
     return true;
 }
 
-bool QtRosNode::call_smooth_path(nav_msgs::Path& path, nav_msgs::Path smooth_path)
+bool QtRosNode::call_smooth_path(nav_msgs::Path& path, nav_msgs::Path& smooth_path)
 {
     navig_msgs::SmoothPath srv;
     srv.request.path = path;
     if(!cltSmoothPath.call(srv))
     {
+        smooth_path = path;
         std::cout << "QtRosNode.->Cannot smooth path" << std::endl;
         return false;
     }
@@ -175,13 +176,9 @@ bool QtRosNode::call_smooth_path(nav_msgs::Path& path, nav_msgs::Path smooth_pat
     return true;
 }
 
-void QtRosNode::publish_goto_xya(float goal_x, float goal_y, float goal_a)
+void QtRosNode::publish_goal_path(nav_msgs::Path path)
 {
-    std_msgs::Float32MultiArray msg;
-    msg.data.push_back(goal_x);
-    msg.data.push_back(goal_y);
-    msg.data.push_back(goal_a);
-    pubGoToXYA.publish(msg);
+    pubFollowPath.publish(path);
 }
 
 void QtRosNode::set_param_control_type(std::string control_type)
