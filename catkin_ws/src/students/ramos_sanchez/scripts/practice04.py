@@ -50,15 +50,14 @@ def callback_follow_path(path):
     # while not rospy.is_shutdown():
     #     loop.sleep()
     #
-    goal_indx = int((path.goal.pose.position.x - path.map.info.origin.position.x) / path.map.info.resolution)
-    goal_indx += int((path.goal.pose.position.y - path.map.info.origin.position.y) / path.map.info.resolution) * path.map.info.width
-    goal_x = path.poses[goal_indx].pose.position.x
-    goal_y = path.poses[goal_indx].pose.position.y
+    goal_x = path.goal.pose.position.x
+    goal_y = path.goal.pose.position.y
     robot_x, robot_y, robot_a = get_robot_pose(listener)
-    while goal_x != robot_x and goal_y != robot_y:
+    while not rospy.is_shutdown():
         robot_x, robot_y, robot_a = get_robot_pose(listener)
         cmd_vel = calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y)
         pub_cmd_vel.publish(cmd_vel)
+        loop.sleep()
     print "Global goal point reached"
 
 def get_robot_pose(listener):
@@ -93,7 +92,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     error_x = goal_x - robot_x
     error_y = goal_y - robot_y
     error_a = math.atan2(error_y, error_x) - robot_a
-    v_max = 1
+    v_max = 0.5
     w_max = 1
     alpha = 0.5
     beta = 0.1
