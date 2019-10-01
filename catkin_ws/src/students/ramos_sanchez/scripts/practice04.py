@@ -16,7 +16,7 @@ import math
 from nav_msgs.msg import Path
 from geometry_msgs.msg import Twist
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "RAMOS_SANCHEZ"
 
 def callback_follow_path(path):
     print "Following path with " + str(len(path.poses)) + " points..."
@@ -50,7 +50,15 @@ def callback_follow_path(path):
     # while not rospy.is_shutdown():
     #     loop.sleep()
     #
-    
+    goal_indx = int((path.goal.pose.position.x - path.map.info.origin.position.x) / path.map.info.resolution)
+    goal_indx += int((path.goal.pose.position.y - path.map.info.origin.position.y) / path.map.info.resolution) * path.map.info.width
+    goal_x = path.poses[goal_indx].pose.position.x
+    goal_y = path.poses[goal_indx].pose.position.y
+    robot_x, robot_y, robot_a = get_robot_pose(listener)
+    while goal_x != robot_x and goal_y != robot_y:
+        robot_x, robot_y, robot_a = get_robot_pose(listener)
+        cmd_vel = calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y)
+        pub_cmd_vel.publish(cmd_vel)
     print "Global goal point reached"
 
 def get_robot_pose(listener):
@@ -81,9 +89,22 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # and return it (check online documentation for the Twist message).
     # Remember to keep error angle in the interval (-pi,pi]
     #
-    
+
+    error_x = goal_x - robot_x
+    error_y = goal_y - robot_y
+    error_a = math.atan2(error_y, error_x) - robot_a
+    v_max = 1
+    w_max = 1
+    alpha = 0.5
+    beta = 0.1
+
+    v = v_max*math.exp(-error_a*error_a/alpha)
+    w = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
+
     cmd_vel = Twist()
-    # cmd_vel.linear.x  =  #Assign the calculated linear speed v 
+    cmd_vel.linear.x = v
+    cmd_vel.angular.z = w
+    # cmd_vel.linear.x  =  #Assign the calculated linear speed v
     # cmd_vel.angular.z =  #Assign the calculated angular speed w
     return cmd_vel
 
@@ -91,9 +112,10 @@ def main():
     print "PRACTICE 04 - " + NAME
     rospy.init_node("practice04")
     rospy.Subscriber('/navigation/simple_move/follow_path', Path, callback_follow_path)
-    
     loop = rospy.Rate(20)
     rospy.spin()
+    # while not rospy.is_shutdown():
+    #     loop.sleep()
 
 if __name__ == '__main__':
     try:
