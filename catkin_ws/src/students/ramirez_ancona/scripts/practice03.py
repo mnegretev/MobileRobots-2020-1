@@ -10,6 +10,7 @@
 
 import sys
 import rospy
+import math
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
 from navig_msgs.srv import SmoothPath
@@ -40,23 +41,20 @@ def callback_smooth_path(req):
     # plus the distance bewteen points in the new and old paths.
     # Store the resulting path in the 'smooth_path' variable.
     # 
-    for i in range(len(req.path.poses)):
-        smooth_path.poses.append(req.path.poses[i])
+    #for i in range(len(req.path.poses)):
+     #   smooth_path.poses.append(req.path.poses[i])
+    smooth_path.poses = req.path.poses
 
-    tol = 0.00001 * len(req.path.poses)
-    gradient_mag = tol + 1
+    tol = 0.001 * len(req.path.poses) 
+    gradient_mag = 1
     delta = 0.5
     attempts = 10000
 
-    while gradient_mag >= tol and attempts > 0:
+    #print len(req.path.poses)
+    #print len(smooth_path.poses)
 
-	"""grad_0 = aplpha*(smooth_path.poses[0].pose.position.x - smooth_path.poses[1].pose.position.x)
-	grad_0 += beta*(smooth_path.poses[0].pose.position.x - old_path.poses[0].pose.position.x)
-	new_x_0 -= delta*grad_0
+    while gradient_mag > tol and attempts > 0:
 
-	grad_0 = aplpha*(smooth_path.poses[0].pose.position.y - smooth_path.poses[1].pose.position.y)
-	grad_0 += beta*(smooth_path.poses[0].pose.position.y - old_path.poses[0].pose.position.y)
-	new_y_0 -= delta*grad_0"""
 	gradient_mag = 0
 	
 	for i in range(1,len(req.path.poses)-2):
@@ -73,15 +71,20 @@ def callback_smooth_path(req):
 		x_new_next = smooth_path.poses[i+1].pose.position.x
 		y_new_next = smooth_path.poses[i+1].pose.position.y
 
-		grad_x = beta*(x_new_i - x_old) + alpha*(2*x_new_i - x_new_prev - x_new_next)
-		grad_y = beta*(y_new_i - y_old) + alpha*(2*y_new_i - y_new_prev - y_new_next)
+		grad_x =  beta*(x_new_i - x_old)
+		grad_x += alpha*(2*x_new_i - x_new_prev - x_new_next)
+		grad_y =  beta*(y_new_i - y_old) 
+		grad_y += alpha*(2*y_new_i - y_new_prev - y_new_next)
 
 		x_new_i -= delta*grad_x
 		y_new_i -= delta*grad_y
-
-		gradient_mag += abs(grad_x) + abs(grad_y)
-	print "Gradient_mag " + str(gradient_mag)
-        print tol
+		#print grad_y
+		#print "Gradiente dentro for" + str(i) + " = " + str(gradient_mag)
+		gradient_mag += math.sqrt(grad_x**2 + grad_y**2)
+		#if gradient_mag < tol: print str(i)
+	
+        #print "Gradient_mag " + str(gradient_mag)
+        #print tol
 	attempts -= 1	    
 
     ####
