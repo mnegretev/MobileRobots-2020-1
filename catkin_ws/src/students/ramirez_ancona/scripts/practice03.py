@@ -40,13 +40,13 @@ def callback_smooth_path(req):
     # plus the distance bewteen points in the new and old paths.
     # Store the resulting path in the 'smooth_path' variable.
     # 
-
-    smooth_path = req.path
+    for i in range(len(req.path.poses)):
+        smooth_path.poses.append(req.path.poses[i])
 
     tol = 0.00001 * len(req.path.poses)
     gradient_mag = tol + 1
     delta = 0.5
-    attempts = 1000
+    attempts = 10000
 
     while gradient_mag >= tol and attempts > 0:
 
@@ -59,7 +59,7 @@ def callback_smooth_path(req):
 	new_y_0 -= delta*grad_0"""
 	gradient_mag = 0
 	
-	for i in range(1,len(req.path.poses)-1):
+	for i in range(1,len(req.path.poses)-2):
 
 		x_old = req.path.poses[i].pose.position.x
 		y_old = req.path.poses[i].pose.position.y
@@ -80,7 +80,8 @@ def callback_smooth_path(req):
 		y_new_i -= delta*grad_y
 
 		gradient_mag += abs(grad_x) + abs(grad_y)
-	#print "Gradient_mag " + str(gradient_mag)
+	print "Gradient_mag " + str(gradient_mag)
+        print tol
 	attempts -= 1	    
 
     ####

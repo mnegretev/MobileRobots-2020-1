@@ -41,18 +41,27 @@ def inflate_map(map):
     celdas = int(radius/map.info.resolution)
     kernel_size = (2*celdas + 1) * (2*celdas + 1)
     neighbors = [0]*(kernel_size)
+    counter = 0
+
+    inflated.info = map.info
+    
+    for i in range(len(map.data)-1):
+	inflated.data.append(map.data[i])
 
     for i in range(-(celdas), celdas):
-	counter = 0
 	for j in range(-(celdas),celdas):
 	    neighbors[counter] = (j*map.info.width + i)
 	    counter += 1
+    
+    print neighbors
+    print len(map.data)
+    print inflated.info.resolution
 
-    for t in range(len(map.data)):
+    for t in range(len(map.data)-1):
 	if map.data[t] == 100:
-	    for j in range(len(neighbors)):
-	        inflated.data[i + neighbors[j]] = 100
-        
+	    for j in range(len(neighbors)-1):
+	        inflated.data[t + neighbors[j]] = 100
+    
     return inflated
 
 def get_nearness(map):
@@ -72,26 +81,27 @@ def get_nearness(map):
 	return map;
     steps = int(radius / map.info.resolution)
 
+    for i in range(len(map.data)-1):
+	nearness.data.append(map.data[i])
+
     boxSize = (steps*2 + 1) * (steps*2 + 1)
     distances = [0]*boxSize
     neighbors = [0]*boxSize
-
     counter = 0
     
     for i in range(-steps,steps):
 	for j in range(-steps,steps):
 	    neighbors[counter] = i*map.info.width + j
-            distances[counter] = (steps - max(abs(i), (j)) + 1)
+            distances[counter] = (steps - max(abs(i), abs(j)) + 1)
             counter += 1
 
     for i in range(len(map.data)):
 	if map.data[i] == 100:
-	    for j in range(boxSize):
-		if nearness.data[i + neigbors[j]] < distances[j]:
+	    for j in range(0,boxSize-1):
+		if nearness.data[i + neighbors[j]] < distances[j]:
 		    nearness.data[i+neighbors[j]] = distances[j]
 	
-    
-
+    nearness.info = map.info
     return nearness
 
 def callback_dijkstra(req):
