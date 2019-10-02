@@ -44,9 +44,9 @@ def main():
         # Move forward if there is no obstacle in front and stop otherwise.
         # Publish the message.
         if obstacle_detected:
-	    cmd_vel.linear.x = 0.0
+	        cmd_vel.linear.x = 0.0
         else:
-	    cmd_vel.linear.x = 0.5
+	        cmd_vel.linear.x = 0.5
         pub_cmd_vel.publish(cmd_vel)
         loop.sleep()
 

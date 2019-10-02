@@ -24,7 +24,7 @@ def callback_follow_path(path):
     listener = tf.TransformListener()
     listener.waitForTransform("map", "base_link", rospy.Time(), rospy.Duration(5.0))
     loop = rospy.Rate(20)
-
+    move = Twist()
     #
     # TODO:
     # Use the calculate_control function to move the robot along
@@ -50,14 +50,22 @@ def callback_follow_path(path):
     # while not rospy.is_shutdown():
     #     loop.sleep()
     #
-    goal_x = path.goal.pose.position.x
-    goal_y = path.goal.pose.position.y
-    robot_x, robot_y, robot_a = get_robot_pose(listener)
-    while not rospy.is_shutdown():
+
+    size = len(path.poses)
+    tol = 0.1
+    for i in range(0, size+1):
+        next_goal_x = path.poses[i].pose.position.x
+        next_goal_y = path.poses[i].pose.position.y
         robot_x, robot_y, robot_a = get_robot_pose(listener)
-        cmd_vel = calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y)
-        pub_cmd_vel.publish(cmd_vel)
-        loop.sleep()
+        distance_x = abs(robot_x - next_goal_x)
+        distance_y = abs(robot_y - next_goal_y)
+        while (distance_x + distance_y) > 2*tol:
+            move = calculate_control(robot_x, robot_y, robot_a, next_goal_x, next_goal_y)
+            pub_cmd_vel.publish(move)
+            loop.sleep()
+            robot_x, robot_y, robot_a = get_robot_pose(listener)
+            distance_x = abs(robot_x - next_goal_x)
+            distance_y = abs(robot_y - next_goal_y)
     print "Global goal point reached"
 
 def get_robot_pose(listener):
@@ -113,8 +121,6 @@ def main():
     rospy.Subscriber('/navigation/simple_move/follow_path', Path, callback_follow_path)
     loop = rospy.Rate(20)
     rospy.spin()
-    # while not rospy.is_shutdown():
-    #     loop.sleep()
 
 if __name__ == '__main__':
     try:
