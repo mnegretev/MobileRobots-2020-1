@@ -9,11 +9,30 @@
 # Before planning, map obstacles must be inflated and nearness should be taken into account
 # as part of the cost function.
 #
+# Consider the map as a bidimensional array with free and occupied cells:
+# [[ 0 0 0 0 0 0]
+#  [ 0 X 0 0 0 0]
+#  [ 0 X X 0 0 0]
+#  [ 0 X X 0 0 0]
+#  [ 0 X 0 0 0 0]
+#  [ 0 0 0 X 0 0]]
+# Where occupied cells 'X' have a value of 100 and free cells have a value of 0.
+# In this example map[1][1] has a value of 100 and map[1][2] has a value of 0.
+#
+# Consider the nearness map as a bidimensional array where free cells have a value indicating
+# how near they are to the nearest occupied cell:
+# [[ 3 3 3 2 2 1]
+#  [ 3 X 3 3 2 1]
+#  [ 3 X X 3 2 1]
+#  [ 3 X X 3 2 2]
+#  [ 3 X 3 3 3 2]
+#  [ 3 3 3 X 3 2]]
+    
 
 import sys
 import copy
 import rospy
-import heapq    #Arbol para cola dinamica
+import heapq
 from collections import deque
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import OccupancyGrid
@@ -21,265 +40,217 @@ from nav_msgs.msg import Path
 from navig_msgs.srv import CalculatePath
 from navig_msgs.srv import CalculatePathResponse
 
-NAME = "Altamirano_Leal"
+NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
 
-
-def inflate_map(map):
-    if rospy.has_param("/navigation/path_planning/inflation_radius"):
-        radius = float(rospy.get_param("/navigation/path_planning/inflation_radius"))
-    else:
-        radius = 1.0        
-    print "Inflating map by " + str(radius) + " meters"
-    inflated = OccupancyGrid()
+def Dijkstra(map, nearness_map, start, goal):
+    print "Calculating Dijkstra from " + str(start) + " to " + str(goal)
     #
-    # TODO:
-    # Inflate all obstacles in 'map' by 'radius'
-    # Store the resulting inflated map in 'inflated'
+    # The Dijkstra algorithm can be performed with the following steps:
     #
+
+    # Variables:
+    # steps          = These variable is just to get an approximate of the computational cost.
+    # open_list      = The open list will be used later as a priority queue.                  
+    # g_values       = We need a set of g_values for all cells, initialy in infinity          
+    # in_open_list   = A set of booleans indicating whether a node is in open list, or not.   
+    # in_closed_list = A set of booleans indicating whether a node is in closed list, or not.
+    # parents        = A set of parent nodes for all cells, all being None at the beginning
+    steps         = 0  
+    open_list     = []
+    g_values      = [[sys.maxint for j in range(len(map[0]))] for i in range(len(map))]
+    in_open_list  = [[False      for j in range(len(map[0]))] for i in range(len(map))]
+    in_closed_list= [[False      for j in range(len(map[0]))] for i in range(len(map))]
+    parents       = [[None       for j in range(len(map[0]))] for i in range(len(map))]
+            
+    [current_r, current_c]             = start #Current node is a pair of coordinates [row,col]
+    heapq.heappush(open_list, (0, start))      #Open list is a priority queue, with g_value, the weighting value
+    in_open_list[current_r][current_c] = True  #We start by adding the start node into the open list
+    g_values    [current_r][current_c] = 0     #The g_value of the start node is set to zero. 
+
     
-    celda = int(radius/map.info.resulting)
-    w = (2*celda+1)*(2*celda+1)
-    v = [0]*(w) ##declaramos el ancho del mapa
-
-    #print str(inflated)
-    #creamos un mapa 
-    for i in range(-(celada),(celda)):
-        casilla =0
-        for j in range(-(celada),(celda)):
-                neighobros[casilla] = j*map.info.width+i #declaramos los vesinos como 
-                casilla +=1
-    for n in range(len(map.data)):
-        if map.data[n] ==100
-            for j in range(neighobros):
-                inflated.data[i+neighobros[j]]=100#indice
-
-
-
-    ####
-    return inflated
-
-
-
-
-
-
-
-
-
-def get_nearness(map):
-    if rospy.has_param("/navigation/path_planning/nearness_radius"):
-        radius = float(rospy.get_param("/navigation/path_planning/nearness_radius"))
-    else:
-        radius = 1.0
-    print "Calculating nearness for a radius of " + str(radius) + " m"
-    nearness = OccupancyGrid()
-    #
-    # TODO:
-    # Get a map where all free cells within a 'radius' distance from an obstacle
-    # contain a number indicating the distance to such obstacles
-    # Store the resulting map in 'nearness'
-    #
-    if radius <= 0:
-    return map;
-    steps = int(radius / map.info.resolution)
-
-    tamaño = (steps*2 + 1) * (steps*2 + 1)
-    distances = [0]*tamaño
-    neighbors = [0]*tamaño
-
-    casilla = 0
-    
-    for i in range(-steps,steps):
-        for j in range(-steps,steps):
-            neighbors[casilla] = i*map.info.width + j
-            distances[casilla] = (steps - max(abs(i), (j)) + 1)
-            casilla += 1
-
-    for i in range(len(map.data)):
-        if map.data[i] == 100:
-        for j in range(tamaño):
-            if nearness.data[i + neigbors[j]] < distances[j]:
-                nearness.data[i+neighbors[j]] = distances[j]
-    
-    
-
-    return nearness
-
-
-
-
-
-
-
-
-
-
-def callback_dijkstra(req):
-    print "Calculating path by Dijkstra search"###
-    map = inflate_map(req.map)  #mapa inflado 
-    map = get_nearness(map)     #mapa con valor de sercania 
-    #map.data[n] revisa el valo de sercania 
-    steps = 0
-
-    #
-    # TODO:
-    # Write a Dijkstra algorithm to find a path between the start position
-    # [req.start.pose.position.x, req.start.pose.position.y]
-    # and the goal position
-    # [req.goal.pose.position.x, req.goal.pose.position.y]
-    # Consider nearness and distance traveled as cost function.
-    # Use the 'steps' variable to store the total steps needed for calculations
-    # HINT: Use a heap structure to keep track of the node with the smallest cost function
-    #
-    
-    ####
-
-    #declaramos las variables Ni
-    start_idx  = int((req.start.pose.position.x - map.info.origin.position.x)/map.info.resolution)
-    start_idx += int((req.start.pose.position.y - map.info.origin.position.y)/map.info.resolution)*map.info.width
-    goal_idx   = int((req.goal.pose.position.x  - map.info.origin.position.x)/map.info.resolution)
-    goal_idx  += int((req.goal.pose.position.y  - map.info.origin.position.y)/map.info.resolution)*map.info.width
-    
-    open_list      = []###
-    in_open_list   = [False]*len(map.data)
-    in_closed_list = [False]*len(map.data)
-    distances      = [sys.maxint]*len(map.data)
-    parent_nodes   = [-1]*len(map.data)
-    
-    current = start_idx
-    heapq.heappush(open_list, (0, start_idx))##
-    in_open_list[start_idx] = True
-    distances[start_idx]    = 0
-
-    while len(open_list) > 0 and current != goal_idx:
-        current = heapq.heappop(open_list)[1]##
-        in_closed_list[current] = True
-        neighbors = [current + map.info.width, current - map.info.width, current + 1, current - 1]
-        for n in neighbors:
-            if map.data[n] > 40 or map.data[n] < 0 or in_closed_list[n]:
+    #While the open list is not empty and we haven't reached the goal position:
+    while len(open_list) > 0 and [current_r, current_c] != goal:
+        #We choose the next node to expand from the open lits (the node with the smallest g-value),
+        #we mark that node as part of the closed list
+        #and we expand the node (pick the neighbors) using 4-connectivity
+        [current_r, current_c]               = heapq.heappop(open_list)[1]
+        in_closed_list[current_r][current_c] = True
+        neighbors = [[current_r+1, current_c], [current_r-1, current_c], [current_r, current_c+1], [current_r, current_c-1]]
+        for [r, c] in neighbors:
+            if map[r][c] != 0 or in_closed_list[r][c]: #If the node is not free or is already in the close list, we skip it.
                 continue
-            dist = distances[current] + 1 + map.data[n]##
-            if dist < distances[n]:
-                distances[n]    = dist
-                parent_nodes[n] = current
-            if not in_open_list[n]:
-                in_open_list[n] = True
-                heapq.heappush(open_list, (dist, n))###
-            steps += 1
+            #The new g-value for the neighbor [r,c] is the sum of the g-value of the current node
+            #(accumulated distance) and the cost of going from current node to neighbor [r,c] (1 + nearness)
+            g = g_values[current_r][current_c] + 1 + nearness_map[r][c] 
+            if g < g_values[r][c]:                          #If the new g value is less than the already set
+                g_values[r][c] = g                          #Then we change it and set the current node
+                parents [r][c] = [current_r, current_c]     #as the parent of the neighbor being checked
+            if not in_open_list[r][c]:                      
+                in_open_list[r][c] = True                   #If it is not already in the open list, we add the neighbor
+                heapq.heappush(open_list, (g, [r,c]))       #to the open list. Remember we are using a heap structure 
+                                                            #to keep nodes sorted by g-values.
+        steps += 1
 
-    if current != goal_idx:
+    if [current_r, current_c] != goal:
         print "Cannot calculate path :'("
         return None
-    ####
-    print "Path calculated after " + str(steps) + " steps."
-    msg_path = Path()
-    msg_path.header.frame_id = "map"
-    #
-    # TODO:
-    # Store the resulting path in the 'msg_path' variable
-    # Return the appropiate response
-    # 
-    while parent_nodes[current] != -1:
-        p = PoseStamped()
-        p.pose.position.x = (current%map.info.width)*map.info.resolution + map.info.origin.position.x
-        p.pose.position.y = (current/map.info.width)*map.info.resolution + map.info.origin.position.y
-        msg_path.poses.insert(0,p)
-        current = parent_nodes[current]
-    ####
-    pub_path = rospy.Publisher('/navigation/path_planning/calculated_path', Path, queue_size=10)
-    pub_path.publish(msg_path)
-    return CalculatePathResponse(msg_path)
-
-
-
-
-    print "Path calculated after " + str(steps) + " steps."
-    msg_path = Path()
-    msg_path.header.frame_id = "map"
-    #
-    # TODO:
-    # Store the resulting path in the 'msg_path' variable
-    # Return the appropiate response
-    # 
+    path = []
+    while parents[current_r][current_c] != None:                #Once we reached the goal point, we 
+        path.insert(0, [current_r, current_c])                  #We build the path by finding the previous nodes 
+        [current_r, current_c] = parents[current_r][current_c]  #until we reach the start node (with parent = None)
+    path.insert(0, [current_r, current_c])
+    print "Path calculated with " + str(len(path)) + " points after " +  str(steps) + " steps"
+    return path
     
-    ####
+
+def a_star(map, nearness_map, start, goal):
+    print "Calculating A* from " + str(start) + " to " + str(goal)
+    #
+    # TODO:
+    #
+    # Implement the A* algorithm given a map, nearness map, start and goal positions.
+    # The A* algorithm can be implement with the same steps as Dijkstra but adding
+    # the following:
+
+    # A set of f_values for all cells, all initially in infinity
+    # Variables [goal_r, goal_c] = goal to store the row and column of the goal cell.
+    # After calculating g-value for a neighbor, also calculate the
+    # heuristic h as the Manhattan distance to goal cell: h = abs(r - goal_r) + abs(c - goal_c)
+    # and calculate the f-value f = h + g
+    # When changing the g-value for node [r,c] (g_values[r][c] = g), change also the f-value:
+    # f_values[r][c] = f
+    # When pushing a node [r,c] to the open list, add it using f-value instead of g-value:
+    # heapq.heappush(open_list, (f, [r,c])) instead of heapq.heappush(open_list, (g, [r,c]))
+    #
+    steps         = 0  
+    open_list     = []
+    g_values      = [[sys.maxint for j in range(len(map[0]))] for i in range(len(map))]
+    f_values      = [[sys.maxint for j in range(len(map[0]))] for i in range(len(map))]
+    in_open_list  = [[False      for j in range(len(map[0]))] for i in range(len(map))]
+    in_closed_list= [[False      for j in range(len(map[0]))] for i in range(len(map))]
+    parents       = [[None       for j in range(len(map[0]))] for i in range(len(map))]
+            
+    [current_r, current_c]             = start #Current node is a pair of coordinates [row,col]
+    heapq.heappush(open_list, (0, start))      #Open list is a priority queue, with g_value, the weighting value
+    in_open_list[current_r][current_c] = True  #We start by adding the start node into the open list
+    g_values    [current_r][current_c] = 0     #The g_value of the start node is set to zero. 
+    f_values    [current_r][current_c] = 0
+    [goal_r, goal_c] = goal
+    #While the open list is not empty and we haven't reached the goal position:
+    while len(open_list) > 0 and [current_r, current_c] != goal:
+        #We choose the next node to expand from the open lits (the node with the smallest g-value),
+        #we mark that node as part of the closed list
+        #and we expand the node (pick the neighbors) using 4-connectivity
+        [current_r, current_c]               = heapq.heappop(open_list)[1]
+        in_closed_list[current_r][current_c] = True
+        neighbors = [[current_r+1, current_c], [current_r-1, current_c], [current_r, current_c+1], [current_r, current_c-1]]
+        for [r, c] in neighbors:
+            if map[r][c] != 0 or in_closed_list[r][c]: #If the node is not free or is already in the close list, we skip it.
+                continue
+            #The new g-value for the neighbor [r,c] is the sum of the g-value of the current node
+            #(accumulated distance) and the cost of going from current node to neighbor [r,c] (1 + nearness)
+            g = g_values[current_r][current_c] + 1 + nearness_map[r][c] 
+            f = f_values[r][c]
+            if g < g_values[r][c]:
+            	h = abs(r - goal_r) + abs(c - goal_c); 
+		h += abs(r - goal_r) + abs(c - goal_c);    	
+            	g_values[r][c] = g   
+            	parents [r][c] = [current_r, current_c]
+            	f = h + g 	    
+            if not in_open_list[r][c]:                      
+                in_open_list[r][c] = True                   #If it is not already in the open list, we add the neighbor
+                heapq.heappush(open_list, (f, [r,c]))       #to the open list. Remember we are using a heap structure 
+                                                            #to keep nodes sorted by g-values.
+        steps += 1
+
+    if [current_r, current_c] != goal:
+        print "Cannot calculate path :'("
+        return None
+    path = []
+    while parents[current_r][current_c] != None:                #Once we reached the goal point, we 
+        path.insert(0, [current_r, current_c])                  #We build the path by finding the previous nodes 
+        [current_r, current_c] = parents[current_r][current_c]  #until we reach the start node (with parent = None)
+    path.insert(0, [current_r, current_c])
+    print "Path calculated with " + str(len(path)) + " points after " +  str(steps) + " steps"
+    return path
+
+def inflate_map(map, size):
+    print "Inflating map by " + str(size) + " cells"
+    inflated = copy.deepcopy(map)
+    for i in range(len(map)):
+        for j in range(len(map[0])):
+            inflated[i][j] = map[i][j]
+            if map[i][j] == 100:
+                for k1 in range(-size, size+1):
+                    for k2 in range(-size, size+1):
+                        inflated[i+k1][j+k2] = 100
+    return inflated
+                        
+def get_nearness(map, size):
+    print "Calculating nearness map with " +str(size) + " cells"
+    nearness_map = copy.deepcopy(map)
+    if size > 10:
+        size = 10
+    for i in range(len(map)):
+        for j in range(len(map[0])):
+            if map[i][j] == 100:
+                for k1 in range(-size, size+1):
+                    for k2 in range(-size, size+1):
+                        nearness = size - max(abs(k1),abs(k2)) + 1
+                        nearness_map[i+k1][j+k2] = max(nearness, nearness_map[i+k1][j+k2])
+    return nearness_map
+
+def callback_generic(req, algorithm):
+    print "Calculating path by " + algorithm + " search"
+    if rospy.has_param("/navigation/path_planning/inflation_radius"):
+        inflation_radius = float(rospy.get_param("/navigation/path_planning/inflation_radius"))
+    else:
+        inflation_radius = 1.0
+    if rospy.has_param("/navigation/path_planning/nearness_radius"):
+        nearness_radius = float(rospy.get_param("/navigation/path_planning/nearness_radius"))
+    else:
+        nearness_radius = 1.0
+
+    map = [[0 for j in range(req.map.info.width)] for i in range(req.map.info.height)]
+    for i in range(req.map.info.height):
+        for j in range(req.map.info.width):
+            map[i][j] = req.map.data[i*req.map.info.width + j]
+            
+    inflated_map = inflate_map(map, int(inflation_radius/req.map.info.resolution))
+    nearness_map = get_nearness(inflated_map, int(nearness_radius/req.map.info.resolution))
+    
+    start_x = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
+    start_y = int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)
+    goal_x  = int((req.goal.pose.position.x  - req.map.info.origin.position.x)/req.map.info.resolution)
+    goal_y  = int((req.goal.pose.position.y  - req.map.info.origin.position.y)/req.map.info.resolution)
+
+    if algorithm == "Dijkstra":
+        path = Dijkstra(inflated_map, nearness_map, [start_y, start_x], [goal_y, goal_x])
+    elif algorithm == "A*":
+        path = a_star(inflated_map, nearness_map, [start_y, start_x], [goal_y, goal_x])
+    else:
+        print "Invalid algorithm name"
+        return None
+    
+    if path == None:
+        return None
+
+    msg_path = Path()
+    msg_path.header.frame_id = "map"
+    for [r,c] in path:
+        p = PoseStamped()
+        p.pose.position.x = c*req.map.info.resolution + req.map.info.origin.position.x
+        p.pose.position.y = r*req.map.info.resolution + req.map.info.origin.position.y
+        msg_path.poses.append(p)
     pub_path = rospy.Publisher('/navigation/path_planning/calculated_path', Path, queue_size=10)
     pub_path.publish(msg_path)
     return CalculatePathResponse(msg_path)
 
 def callback_a_star(req):
-    print "Calculating path A-Star" ####
-    map = inflate_map(req.map)
-    map = get_nearness(map)
-    steps = 0
-    #
-    # TODO:
-    # Write a A-star algorithm to find a path between the start position
-    # [req.start.pose.position.x, req.start.pose.position.y]
-    # and the goal position
-    # [req.goal.pose.position.x, req.goal.pose.position.y]
-    # Consider nearness and distance traveled as cost function and Manhattan distance to goal as h-value
-    # Use the 'steps' variable to store the total steps needed for calculations
-    # HINT: Use a heap structure to keep track of the node with the smallest f-value
-    #
-    start_idx  = int((req.start.pose.position.x - map.info.origin.position.x)/map.info.resolution)
-    start_idx += int((req.start.pose.position.y - map.info.origin.position.y)/map.info.resolution)*map.info.width
-    goal_idx   = int((req.goal.pose.position.x  - map.info.origin.position.x)/map.info.resolution)
-    goal_idx  += int((req.goal.pose.position.y  - map.info.origin.position.y)/map.info.resolution)*map.info.width
-    
-    open_list      = []#####
-    in_open_list   = [False]*len(map.data)
-    in_closed_list = [False]*len(map.data)
-    distances      = [sys.maxint]*len(map.data)
-    parent_nodes   = [-1]*len(map.data)
-    
-    current = start_idx
-    heapq.heappush(open_list, (0, start_idx))##
-    in_open_list[start_idx] = True
-    distances[start_idx]    = 0
+    return callback_generic(req, "A*")
 
-    while len(open_list) > 0 and current != goal_idx:
-        current = heapq.heappop(open_list)[1]##
-        in_closed_list[current] = True
-        neighbors = [current + map.info.width, current - map.info.width, current + 1, current - 1]
-        for n in neighbors:
-            if map.data[n] > 40 or map.data[n] < 0 or in_closed_list[n]:
-                continue
-            dist = distances[current] + 1 + int(map.data[n]/5.0)##
-            f_value = sys.maxint
-            if dist < distances[n]:
-                h  = abs(n%map.info.width - goal_idx%map.info.width);
-                h += abs(n/map.info.width - goal_idx/map.info.width);
-                distances[n]    = dist
-                parent_nodes[n] = current
-                f_value = dist + h
-            if not in_open_list[n]:
-                in_open_list[n] = True
-                heapq.heappush(open_list, (f_value, n))###
-            steps += 1
-
-    if current != goal_idx:
-        print "Cannot calculate path :'("
-        return None
-    ####
-    print "Path calculated after " + str(steps) + " steps."
-    msg_path = Path()
-    msg_path.header.frame_id = "map"
-    #
-    # TODO:
-    # Store the resulting path in the 'msg_path' variable
-    # Return the appropiate response
-    #
-    while parent_nodes[current] != -1:
-        p = PoseStamped()
-        p.pose.position.x = (current%map.info.width)*map.info.resolution + map.info.origin.position.x
-        p.pose.position.y = (current/map.info.width)*map.info.resolution + map.info.origin.position.y
-        msg_path.poses.insert(0,p)
-        current = parent_nodes[current]
-    ####
-    pub_path = rospy.Publisher('/navigation/path_planning/calculated_path', Path, queue_size=10)
-    pub_path.publish(msg_path)
-    return CalculatePathResponse(msg_path)
+def callback_dijkstra(req):
+    return callback_generic(req, "Dijkstra")
 
 def main():
     print "PRACTICE 02 - " + NAME
