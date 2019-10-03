@@ -82,6 +82,7 @@ def get_robot_pose(listener):
     return None
 
 def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
+
     #
     # TODO:
     # Implement the control law given by:
