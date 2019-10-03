@@ -49,10 +49,13 @@ public slots:
     void btnCmdVelPressed();
     void btnCmdVelReleased();
 
+    bool calculate_path(nav_msgs::Path& resulting_path);
     void navBtnCalcPath_pressed();
     void navBtnExecPath_pressed();
     void navRadioButtonCliked();
     void txtSmoothingReturnPressed();
+    
+    void pfBtnMove_pressed();
 
 private:
     Ui::MainWindow *ui;
