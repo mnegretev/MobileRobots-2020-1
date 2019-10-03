@@ -5,6 +5,7 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Twist.h"
+#include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
@@ -22,6 +23,7 @@ public:
     ros::NodeHandle* n;
     ros::Publisher        pubCmdVel;
     ros::Publisher        pubFollowPath;
+    ros::Publisher        pubPfGoalPoint;
     ros::ServiceClient    cltBFS;
     ros::ServiceClient    cltDFS;
     ros::ServiceClient    cltDijkstra;
@@ -49,6 +51,8 @@ public:
     bool call_smooth_path         (nav_msgs::Path& path, nav_msgs::Path& smooth_path);
 
     void publish_goal_path(nav_msgs::Path path);
+
+    void publish_pf_goal_point(float goal_x, float goal_y);
 
     void set_param_control_type(std::string control_type);
 
