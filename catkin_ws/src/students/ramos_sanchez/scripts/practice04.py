@@ -53,7 +53,7 @@ def callback_follow_path(path):
 
     size = len(path.poses)
     tol = 0.1
-    for i in range(0, size+1):
+    for i in range(0, size):
         next_goal_x = path.poses[i].pose.position.x
         next_goal_y = path.poses[i].pose.position.y
         robot_x, robot_y, robot_a = get_robot_pose(listener)
@@ -101,7 +101,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     error_y = goal_y - robot_y
     error_a = math.atan2(error_y, error_x) - robot_a
     v_max = 0.5
-    w_max = 1
+    w_max = 0.5
     alpha = 0.5
     beta = 0.1
 
