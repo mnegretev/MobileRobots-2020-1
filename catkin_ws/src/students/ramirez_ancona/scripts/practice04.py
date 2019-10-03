@@ -48,19 +48,21 @@ def callback_follow_path(path):
     # while not rospy.is_shutdown():
     #     loop.sleep()
     #
-	for p in range(len(path.poses)):
-		goal_x		= path.poses[i].pose.position.x
-	    goal_y		= path.poses[i].pose.position.y
-		robot_x, robot_y, robot_a = get_robot_pose(listener)
-		distance	= math.sqrt((goal_x - robot_x)*(goal_x - robot_x) + (goal_y - robot_y)*(goal_y - robot_y))
-		while d > 0.1:
-			cmd_vel		= calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y)
-			pub_cmd_vel.publish(cmd_vel)
-			loop.sleep()
-		    robot_x, robot_y, robot_a = get_robot_pose(listener)
-			distance	= math.sqrt((goal_x - robot_x)*(goal_x - robot_x) + (goal_y - robot_y)*(goal_y - robot_y))
+    print get_robot_pose(listener)
+    for i in range(len(path.poses)):
+        goal_x = path.poses[i].pose.position.x
+        goal_y = path.poses[i].pose.position.y
+        robot_x, robot_y, robot_a = get_robot_pose(listener)
+        distance = math.sqrt((goal_x - robot_x)*(goal_x - robot_x) + (goal_y - robot_y)*(goal_y - robot_y))
+        print distance
+        while distance > 0.2:
+            cmd_vel	= calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y)
+            pub_cmd_vel.publish(cmd_vel)
+            loop.sleep()
+            robot_x, robot_y, robot_a = get_robot_pose(listener)
+            distance = math.sqrt((goal_x - robot_x)*(goal_x - robot_x) + (goal_y - robot_y)*(goal_y - robot_y))
     print "Global goal point reached"
-	return None
+    return None
 
 def get_robot_pose(listener):
     try:
@@ -80,14 +82,19 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # TODO:
     # Implement the control law given by:
     #
-    v_max	= 0.8
-	w_max	= 1
-	alpha	= 0.6
-	beta	= 0.1
+    v_max = 0.5
+    w_max = 1
+    alpha = 1
+    beta = 0.8
 
-	error_x	= goal_x - robot_x
-	error_y	= goal_y - robot_y
-	error_a	= atan2(error_y,error_x) - robot_a
+    error_x = goal_x - robot_x
+    error_y = goal_y - robot_y
+    error_a = math.atan2(error_y,error_x) - robot_a
+
+    if error_a >= math.pi:
+        error_a -= 2*math.pi
+    if error_a <= -math.pi:
+        error_a += 2*(math.pi)
 
 
     v = v_max*math.exp(-error_a*error_a/alpha)
