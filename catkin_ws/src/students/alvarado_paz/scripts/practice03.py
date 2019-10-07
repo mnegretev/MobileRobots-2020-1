@@ -4,12 +4,13 @@
 # PRACTICE 3 - PATH SMOOTHING BY GRADIENT DESCEND
 #
 # Instructions:
-# Write the code necessary to smooth a path given by a sequence of points
+# Complete the code necessary to smooth a path given by a sequence of points
 # using a gradient descend algorithm.
 #
 
 import sys
 import rospy
+import copy
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
 from navig_msgs.srv import SmoothPath
@@ -17,6 +18,49 @@ from navig_msgs.srv import SmoothPathResponse
 from collections import deque
 
 NAME = "ALVARADO_PAZ"
+
+def get_smooth_path(original_path, alpha, beta):
+    #
+    # TODO:
+    # Complete the algorithm to smooth the 'original_path' and return a new path.
+    # Path is composed of a set of points [x,y]. For example, the following line
+    # [xo_i,yo_i] = original_path[i]
+    # stores the x,y coordinates of the i-th point of the original path
+    # in the variables xo_i and yo_i respectively. 
+    #
+    #
+    smooth_path  = copy.deepcopy(original_path)            # At the beginnig, the smooth path is the same than the original path.
+    tolerance    = 0.00001                                 # If gradient magnitude is less than a tolerance, we consider.
+    gradient_mag = tolerance + 1                           # we have reached the local minimum.
+    gradient     = [[0,0] for i in range(len(smooth_path))]# Gradient has N components of the form [x,y]. 
+    epsilon      = 0.5                                     # This variable will weight the calculated gradient.
+
+    while gradient_mag > tolerance:
+        #First and last components are not calculated since start and goal points remain the same. 
+        for i in range(1, len(original_path)-1):
+            #
+            # TODO:
+            # Calculate the i-th component of gradient. You need the following variables:
+            [xo_i, yo_i]   = original_path[i] # i-th point of the original path
+            [xn_i, yn_i]   = smooth_path  [i] # i-th point of the smooth path
+            [xn_in, yn_in] = smooth_path[i+1] # (i+1)-th point of the smooth path
+            [xn_ip, yn_ip] = smooth_path[i-1] # (i-1)-th point of the smooth path  
+            #grad_x =  #Calculate the X-value of the i-th component of the gradient (see lecture notes)
+	        #grad_y =  #Calcualte the Y-value of the i-th component of the gradient (see lecture notes)
+            grad_x =  alpha*(2*xn_i - xn_ip - xn_in) + beta*(xn_i - xo_i)
+            grad_y =  alpha*(2*yn_i - yn_ip - yn_in) + beta*(yn_i - yo_i)
+            gradient[i] = [grad_x, grad_y]
+            
+        # We change the value of the i-th point of the smooth path in the opposite direction of the gradient:
+        for i in range(len(smooth_path)):
+            smooth_path[i][0] -= epsilon*gradient[i][0]
+            smooth_path[i][1] -= epsilon*gradient[i][1]
+
+        # Finally, we calculate the magnitude of the gradient to check if we have already reached the local minimum: 
+        gradient_mag = 0
+        for i in range(len(gradient)):
+            gradient_mag += abs(gradient[i][0]) + abs(gradient[i][1]) #We are using the norm-1
+    return smooth_path
 
 def callback_smooth_path(req):
     if rospy.has_param("/navigation/path_planning/smoothing_alpha"):
@@ -27,98 +71,28 @@ def callback_smooth_path(req):
         beta = rospy.get_param("/navigation/path_planning/smoothing_beta")
     else:
         beta = 0.5
+
+    path = []
+    for i in range(len(req.path.poses)):
+        x = req.path.poses[i].pose.position.x
+        y = req.path.poses[i].pose.position.y
+        path.append([x,y])
+
     print "Smoothing a " + str(len(req.path.poses)) + " points path with alpha=" + str(alpha) + " and beta=" + str(beta)
-
-    smooth_path = Path()
-    smooth_path.header.frame_id = "map"
-    smooth_path.header.stamp    = rospy.Time.now()
-    #
-    # TODO:
-    # Write the algorithm to smooth the path by gradient descend algorith
-    # using as cost function the sum of the distance between point in the new path
-    # plus the distance bewteen points in the new and old paths.
-    # Store the resulting path in the 'smooth_path' variable.
-    #
-    new_path = Path()
-    smooth_path.header.frame_id = "map1"
-    smooth_path.header.stamp    = rospy.Time.now()
-
-
-    delta      = 0.5 # supongo un valor pequeno
-    tolerancia = 0.0001 
-    grad_m  = tolerancia + 1
-
-    ################################
-    # Me quede corrigiendo lo errores que salen en la ejecucion de el Calc Path 
-    # referentes a mi sintaxis en mi codigo, la forma en que accedo a las cordenadas
-    # es donde me arroja errores, sigo resolviendolo
-    ################################
-    while grad_m > tolerancia:
-        # Puntos a ocupar en el gradiente
-        # Coord de la ruta original
-        xo_0 = req.smooth_path.poses[0].pose.position.x
-        yo_0 = req.smooth_path.poses[0].pose.position.y
-        # Coord de la runa n
-        xn_0 = new_path.poses[0].pose.position.x
-        yn_0 = new_path.poses[0].pose.position.y
-        # Coord de la ruta n + 1
-        xn_1 = new_path.poses[1].pose.position.x
-        yn_1 = new_path.poses[1].pose.position.y
-
-        ##
-        grad_x = delta*(alpha*(xn_0 - xn_1) + beta*(xn_0 - xo_0))
-        grad_y = delta*(alpha*(xn_0 - xn_1) + beta*(xn_0 - xo_0))
-
-        # Coord de nueva ruta
-        xn_0 = xn_0 - grad_x
-        yn_0 = yn_1 - grad_y
-
-        grad_m += abs(grad_x) + abs(grad_y)
-
-
-        # Calculo de k 
-        for i in xrange(1,len(path.poses)):
-            xo_i   = req.smooth_path.poses[i].pose.position.x
-            yo_i   = req.smooth_path.poses[i].pose.position.y
-
-            xn_i   = new_path.poses[i].pose.position.x
-            yn_i   = new_path.poses[i].pose.position.y
-
-            xn_i_s = new_path.poses[i].pose.position.x
-            yn_i_s = new_path.poses[i].pose.position.y
-
-            xn_i_a = new_path.poses[i].pose.position.x
-            yn_i_a = new_path.poses[i].pose.position.y
-
-            grad_x = delta*(alpha*(2*xn_i - xn_i_s - xn_i_a) + beta*(xn_i - xo_i))
-            grad_y = delta*(alpha*(2*yn_i - yn_i_s - yn_i_a) + beta*(yn_i - yo_i))
-
-            # i-esimo termino
-            new_path.poses[i].pose.position.x = new_path.poses[i].pose.position.x - grad_x
-            new_path.poses[i].pose.position.y = new_path.poses[i].pose.position.x - grad_y
-
-            grad_m += abs(grad_x) + abs(grad_y)
-
-        # ultimos terminos
-        al_x = alpha*(new_path.poses[len(path.poses)].pose.position.x - new_path.poses[len(path.poses) - 1].pose.position.x)
-        be_x = beta*(new_path.poses[len(path.poses)].pose.position.x - req.smooth_path.poses[len(path.poses)].pose.position.x)
-        al_y = alpha*(new_path.poses[len(path.poses)].pose.position.y - new_path.poses[len(path.poses) - 1].pose.position.y)
-        be_y = beta*(new_path.poses[len(path.poses)].pose.position.y - req.smooth_path.poses[len(path.poses)].pose.position.y)
-        grad_x = delta*(al_x - be_x)
-        grad_y = delta*(al_y - be_y)
-
-        #
-        new_path.poses[len(path.poses)].pose.position.x = new_path.poses[len(path.poses) - 1].pose.position.x - grad_x
-        new_path.poses[len(path.poses)].pose.position.y = new_path.poses[len(path.poses) - 1].pose.position.x - grad_y
-
-        grad_m += abs(grad_x) + abs(grad_y)  
-
-    #smooth_path = new_path
-    ####
-    print "Path smoothed after " + str(attempts) + " steps"
+    smooth_path = get_smooth_path(path, alpha, beta)
+    print "Path smoothed"
+    msg_smooth_path = Path()
+    msg_smooth_path.header.frame_id = "map"
+    for i in range(len(path)):
+        p = PoseStamped()
+        p.pose.position.x = smooth_path[i][0]
+        p.pose.position.y = smooth_path[i][1]
+        msg_smooth_path.poses.append(p)
+        
+    msg_smooth_path.header.stamp    = rospy.Time.now()
     pub_path = rospy.Publisher('/navigation/path_planning/smooth_path', Path, queue_size=10)
-    pub_path.publish(smooth_path)
-    return SmoothPathResponse(smooth_path)
+    pub_path.publish(msg_smooth_path)
+    return SmoothPathResponse(msg_smooth_path)
 
 def main():
     print "PRACTICE 03 - " + NAME
