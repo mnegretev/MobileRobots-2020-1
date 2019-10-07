@@ -54,6 +54,8 @@ public slots:
     void navBtnExecPath_pressed();
     void navRadioButtonCliked();
     void txtSmoothingReturnPressed();
+    
+    void pfBtnMove_pressed();
 
 private:
     Ui::MainWindow *ui;
