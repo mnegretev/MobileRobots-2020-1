@@ -34,13 +34,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->navTxtGoalPose, SIGNAL(returnPressed()), this, SLOT(navBtnCalcPath_pressed()));
     QObject::connect(ui->navBtnCalcPath, SIGNAL(clicked()), this, SLOT(navBtnCalcPath_pressed()));
     QObject::connect(ui->navBtnExecPath, SIGNAL(clicked()), this, SLOT(navBtnExecPath_pressed()));
-    QObject::connect(ui->navRbOmnidirectional, SIGNAL(clicked()), this, SLOT(navRadioButtonCliked()));
-    QObject::connect(ui->navRbDifferential   , SIGNAL(clicked()), this, SLOT(navRadioButtonCliked()));
+    //QObject::connect(ui->navRbOmnidirectional, SIGNAL(clicked()), this, SLOT(navRadioButtonCliked()));
+    //QObject::connect(ui->navRbDifferential   , SIGNAL(clicked()), this, SLOT(navRadioButtonCliked()));
 
     QObject::connect(ui->navTxtInflation  , SIGNAL(returnPressed()), this, SLOT(txtSmoothingReturnPressed()));
     QObject::connect(ui->navTxtNearness   , SIGNAL(returnPressed()), this, SLOT(txtSmoothingReturnPressed()));
     QObject::connect(ui->navTxtSmoothAlpha, SIGNAL(returnPressed()), this, SLOT(txtSmoothingReturnPressed()));
     QObject::connect(ui->navTxtSmoothBeta , SIGNAL(returnPressed()), this, SLOT(txtSmoothingReturnPressed()));
+
+    QObject::connect(ui->pfBtnMove, SIGNAL(clicked()), this, SLOT(pfBtnMove_pressed()));
+    QObject::connect(ui->pfTxtGoalPoint, SIGNAL(returnPressed()), this, SLOT(pfBtnMove_pressed()));
 }
 
 MainWindow::~MainWindow()
@@ -250,10 +253,10 @@ void MainWindow::navBtnExecPath_pressed()
 
 void MainWindow::navRadioButtonCliked()
 {
-    if(this->ui->navRbDifferential->isChecked())
+    /*if(this->ui->navRbDifferential->isChecked())
 	qtRosNode->set_param_control_type("diff");
     else
-	qtRosNode->set_param_control_type("omni");
+    qtRosNode->set_param_control_type("omni");*/
 }
 
 void MainWindow::txtSmoothingReturnPressed()
@@ -284,4 +287,30 @@ void MainWindow::txtSmoothingReturnPressed()
 	qtRosNode->set_param_smoothing_beta(smoothing_beta);
 
     //navBtnCalcPath_pressed();
+}
+
+void MainWindow::pfBtnMove_pressed()
+{
+    float goalX = 0;
+    float goalY = 0;
+    std::vector<std::string> parts;
+    std::string str = this->ui->pfTxtGoalPoint->text().toStdString();
+    boost::algorithm::to_lower(str);
+    boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
+    if(parts.size() >= 2)
+    {
+        std::stringstream ssGoalX(parts[0]);
+        std::stringstream ssGoalY(parts[1]);
+        if(!(ssGoalX >> goalX) || !(ssGoalY >> goalY))
+        {
+            this->ui->pfTxtGoalPoint->setText("Invalid format");
+            return;
+        }
+    }
+    else
+    {
+	this->ui->pfTxtGoalPoint->setText("Invalid format");
+	return;
+    }
+    qtRosNode->publish_pf_goal_point(goalX, goalY);
 }
