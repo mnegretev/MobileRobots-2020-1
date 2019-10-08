@@ -45,8 +45,8 @@ def get_smooth_path(original_path, alpha, beta):
             [xn_i, yn_i]   = smooth_path  [i] # i-th point of the smooth path
             [xn_in, yn_in] = smooth_path[i+1] # (i+1)-th point of the smooth path
             [xn_ip, yn_ip] = smooth_path[i-1] # (i-1)-th point of the smooth path  
-            grad_x = alpha*(xn_i - xn_in) + beta*(xn_i - xo_i) #Calculate the X-value of the i-th component of the gradient (see lecture notes)
-            grad_y = alpha*(yn_i - yn_in) + beta*(yn_i - yo_i) #Calcualte the Y-value of the i-th component of the gradient (see lecture notes)
+            grad_x = alpha*(2*xn_i - xn_ip - xn_in) + beta*(xn_i - xo_i) #Calculate the X-value of the i-th component of the gradient (see lecture notes)
+            grad_y = alpha*(2*yn_i - yn_ip - yn_in) + beta*(yn_i - yo_i) #Calcualte the Y-value of the i-th component of the gradient (see lecture notes)
             gradient[i] = [grad_x, grad_y]
             
         # We change the value of the i-th point of the smooth path in the opposite direction of the gradient:
