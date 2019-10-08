@@ -1,0 +1,5 @@
+Alumno: Hernández Sánchez
+Calificación: 5
+Comentarios:
+La práctica 02 no funciona. El programa arroja una excepción en
+ambos algoritmos, Dijkstra y A*.
