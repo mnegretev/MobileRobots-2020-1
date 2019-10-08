@@ -40,7 +40,7 @@ from nav_msgs.msg import Path
 from navig_msgs.srv import CalculatePath
 from navig_msgs.srv import CalculatePathResponse
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "Altamirano_Leal"
 
 def Dijkstra(map, nearness_map, start, goal):
     print "Calculating Dijkstra from " + str(start) + " to " + str(goal)

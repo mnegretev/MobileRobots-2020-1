@@ -16,7 +16,7 @@ import math
 from nav_msgs.msg import Path
 from geometry_msgs.msg import Twist
 
-NAME = "A"
+NAME = "Altamirano_Leal"
 
 def callback_follow_path(path):
     print "Following path with " + str(len(path.poses)) + " points..."
@@ -50,22 +50,48 @@ def callback_follow_path(path):
     # while not rospy.is_shutdown():
     #     loop.sleep()
     #
+
+    j = len(path.poses)
     robot_x, robot_y, robot_a = get_robot_pose(listener)
-    position_f_x = path.poses[0].pose.position.x
-    position_f_y = path.poses[0].pose.position.y
+    position_f_x = path.poses[3].pose.position.x
+    position_f_y = path.poses[3].pose.position.y
+    goal_x = path.poses[j-1].pose.position.x;
+    goal_y = path.poses[j-1].pose.position.y;
 
-    EF = ((robot_x-position_f_x)*(robot_x-position_f_x))+((robot_y-position_f_y)*(robot_y-position_f_y))
-    EF = sqrt(EF)
+    EF = ((robot_x-goal_x)*(robot_x-goal_x))+((robot_y-goal_y)*(robot_y-goal_y))
+    EF = math.sqrt(EF)
+    EA = ((robot_x-position_f_x)*(robot_x-position_f_x))+((robot_y-position_f_y)*(robot_y-position_f_y))
+    EA = math.sqrt(EA)
+    
+    i = 3
 
-    while  EF >=.10
-
+    while  (EF >=0.05):
+        position_f_x = path.poses[i].pose.position.x
+        position_f_y = path.poses[i].pose.position.y
         robot_x, robot_y, robot_a = get_robot_pose(listener)
-        #origen 
-        goal_x = path.poses[i-1].pose.position.x;
-        goal_y = path.poses[i-1].pose.position.y;
-        robot_a = 0;
+        EF = ((robot_x-goal_x)*(robot_x-goal_x))+((robot_y-goal_y)*(robot_y-goal_y))
+        EF = math.sqrt(EF)
 
-        calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y)
+        while (EA>0.05):
+            print ("RobotA "+str(robot_x ) + " " + str(robot_y))
+            print ("RotbotS "+str(position_f_x ) + " " + str(position_f_y))
+            robot_x, robot_y, robot_a = get_robot_pose(listener)
+            position_f_x = path.poses[i].pose.position.x
+            position_f_y = path.poses[i].pose.position.y
+            EA = ((robot_x-position_f_x)*(robot_x-position_f_x))+((robot_y-position_f_y)*(robot_y-position_f_y))
+            EA = math.sqrt(EA)
+            EF = ((robot_x-goal_x)*(robot_x-goal_x))+((robot_y-goal_y)*(robot_y-goal_y))
+            EF = math.sqrt(EF)
+            print("EA "+str(EA))
+            print("EF "+str(EF))
+            mover=calculate_control(robot_x, robot_y, robot_a, position_f_x, position_f_y)
+            if (EA<.1 and i <= (j-2)):
+                i+=1
+            pub_cmd_vel.publish(mover)
+            loop.sleep()
+        #robot_a = 0;
+
+        
 
     
     print "Global goal point reached"
@@ -98,18 +124,18 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # and return it (check online documentation for the Twist message).
     # Remember to keep error angle in the interval (-pi,pi )
     #
-    v_max =.8
-    w_max =1
-    alpha =.6
-    beta  =.4
+    v_max =.4
+    w_max =.5
+    alpha =.4
+    beta  =0.8
     pi    = 3.14159265359 
 
-    error_a = math.atan2(robot_y-goal_y , robot_x-goal_x)-robot_a
+    error_a = math.atan2(goal_y-robot_y , goal_x-robot_x)-robot_a
 
-    if error_a >= pi
-        error_a = pi
-    if error_a <= -pi
-        error_a = -pi 
+    if error_a >= math.pi:
+        error_a -= 2*math.pi
+    if error_a <= -math.pi:
+        error_a += 2*math.pi 
 
     v = v_max*math.exp(-error_a*error_a/alpha)
     w = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
