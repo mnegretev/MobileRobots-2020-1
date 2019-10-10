@@ -18,7 +18,7 @@ from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from sensor_msgs.msg import LaserScan
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "ALVARADO_PAZ"
 
 def attraction_force(robot_x, robot_y, goal_x, goal_y):
     #
@@ -31,6 +31,14 @@ def attraction_force(robot_x, robot_y, goal_x, goal_y):
     # where force_x and force_y are the X and Y components
     # of the resulting attraction force. 
     #
+    alpha = 2
+
+    dif_x = robot_x - goal_x
+    dif_y = robot_y - goal_y
+    norma = math.sqrt(dif_x**2 + dif_y**2)
+
+    force_x = alpha*(dif_x/norma)
+    force_y = alpha*(dif_y/norma)
     
     return [force_x, force_y]
 
@@ -46,7 +54,25 @@ def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     # where force_x and force_y are the X and Y components
     # of the resulting rejection force. 
     #
-    
+    beta  = 8
+    do    = 1 # distancia de influencia
+    mag   = 0
+    suma_fx  = 0
+    suma_fy  = 0
+    for [distance, angle] in laser_readings:
+        if distance < do and distance > 0:
+            mag = beta*(math.sqrt((1/distance) - (1/do)))
+        else:
+            mag = 0
+        force_x = mag*math.cos(robot_a + angle)
+        force_y = mag*math.sin(robot_a + angle)
+        # Acumulacion de las fuerza repulsiva por cada lectura de laser
+        suma_fx += force_x
+        suma_fy += force_y
+
+    force_x = suma_fx/len(laser_readings)
+    force_y = suma_fy/len(laser_readings)
+
     return [force_x, force_y]
 
 def callback_pot_fields_goal(msg):
@@ -88,7 +114,34 @@ def callback_pot_fields_goal(msg):
     #     Wait a little bit of time by calling loop.sleep()
     #     Update robot position by calling robot_x, robot_y, robot_a = get_robot_pose(listener)
     #     Update distance to goal position
-    
+    epsilon   = 0.5
+    tolerance = 0.1
+    robot_x, robot_y, robot_a = get_robot_pose(listener)    
+    # distance_to_goal_point
+    dist = math.sqrt((goal_x - robot_x)**2 + (goal_y - robot_y)**2)
+    while dist > tolerance:
+        [fax, fay] = attraction_force(robot_x, robot_y, goal_x, goal_y)
+        [frx, fry] = rejection_force (robot_x, robot_y, robot_a, laser_readings)
+        
+        Fx = fax + frx
+        Fy = fay + fry
+
+        px = robot_x - epsilon*Fx
+        py = robot_y - epsilon*Fy
+
+        
+        msg_cmd_vel = calculate_control(robot_x, robot_y, robot_a, px, py)
+        pub_cmd_vel.publish(msg_cmd_vel)
+        # Publicacion de vectores en el simulador 
+        pub_markers.publish(get_force_marker(robot_x,robot_y,fax,fay,[0,0,1,1]  , 0))
+        pub_markers.publish(get_force_marker(robot_x,robot_y,frx,fry,[1,0,0,1]  , 1))
+        pub_markers.publish(get_force_marker(robot_x,robot_y,Fx ,Fy ,[0,0.6,0,1], 2))
+        
+        loop.sleep()
+        robot_x, robot_y, robot_a = get_robot_pose(listener)
+        dist = math.sqrt((goal_x - robot_x)**2 + (goal_y - robot_y)**2)
+
+
     print "Goal point reached"
 
 def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
