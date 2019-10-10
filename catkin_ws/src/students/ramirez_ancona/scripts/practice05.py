@@ -32,8 +32,8 @@ def attraction_force(robot_x, robot_y, goal_x, goal_y):
     # of the resulting attraction force. 
     #
     alpha = 1
-    att_x = goal_x - robot_x
-    att_y = goal_y - robot_y
+    att_x = robot_x - goal_x
+    att_y = robot_y - goal_y
     mag = math.sqrt(att_x*att_x + att_y*att_y)
     att_x = (att_x / mag) if mag > 0 else  0
     att_y = (att_y / mag) if mag > 0 else  0
@@ -57,17 +57,22 @@ def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     #
     rej_x = 0
     rej_y = 0
-    beta = 1
+    beta = 3
     d0 = 1.5
-    print len(laser_readings)
+    mag = 0
+    #print len(laser_readings)
     for d,a in laser_readings:
-        if d < d0:
+        if d < d0 and d > 0:
+            #print d
             mag = beta * math.sqrt(1/d -1/d0)
         else:
             mag = 0
 
-        rej_x = math.cos(robot_a+a)
-        rej_y = math.sin(robot_a+a)
+        rej_x += math.cos(robot_a+a)*mag
+        rej_y += math.sin(robot_a+a)*mag
+
+    rej_x /= len(laser_readings)
+    rej_y /= len(laser_readings)
 
     [force_x, force_y] = rej_x, rej_y
 
@@ -114,21 +119,21 @@ def callback_pot_fields_goal(msg):
     #     Update distance to goal position
 
     epsilon = 0.5
-    tol = 0.1
+    tol = 0.15
     robot_x, robot_y, robot_a = get_robot_pose(listener)
     distance = math.sqrt((goal_x - robot_x)**2 + (goal_y - robot_y)**2)
     while distance > tol:
         [fax, fay] = attraction_force(robot_x, robot_y, goal_x, goal_y)
         [frx, fry] = rejection_force(robot_x, robot_y, robot_a, laser_readings)
         F = [fax+frx,fay+fry]
-        [px, py] = robot_x-epsilon*F[0],robot_y-epsilon*F[1]
+        [px, py] =[ robot_x-epsilon*F[0],robot_y-epsilon*F[1]]
 
         msg_cmd_vel = calculate_control(robot_x, robot_y, robot_a, px, py)
         pub_cmd_vel.publish(msg_cmd_vel)
 
         pub_markers.publish(get_force_marker(robot_x,robot_y,fax,fay,[0,0,1,1]  , 0))
         pub_markers.publish(get_force_marker(robot_x,robot_y,frx,fry,[1,0,0,1]  , 1))
-        pub_markers.publish(get_force_marker(robot_x,robot_y,px ,py ,[0,0.6,0,1], 2))
+        pub_markers.publish(get_force_marker(robot_x,robot_y,F[0],F[1],[0,0.6,0,1], 2))
 		
         loop.sleep()
         robot_x, robot_y, robot_a = get_robot_pose(listener)
