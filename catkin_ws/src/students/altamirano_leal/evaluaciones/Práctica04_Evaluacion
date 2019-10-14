@@ -1,0 +1,8 @@
+Alumno: Altamirano Leal
+Calificación: 8
+Comentarios:
+El algoritmo falló en dos pruebas y el robot se detuvo antes de
+alcanzar el punto meta. Esto se debe a que,
+si en el if de la línea 88, se cumple que EA <= 0.05, ya nunca
+va a volver a entrar al segundo while y por lo tanto nunca va
+a alcanzar el punto meta. 
