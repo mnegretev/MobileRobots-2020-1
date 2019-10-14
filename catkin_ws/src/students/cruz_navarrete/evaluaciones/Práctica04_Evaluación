@@ -1,0 +1,8 @@
+Alumno: Cruz Navarrete
+Calificación: 8
+Comentarios:
+El programa provoca muchas oscilaciones mientras el robot sigue la ruta.
+El problema se presenta cuando el robot se mueve hacia el sentido
+negativo de las X. Esto puede deberse a que en la función
+calculate_control, línea 113, el ángulo se corrige cuando es mayor que pi,
+pero falta corregirlo cuando es menor que -pi. 
