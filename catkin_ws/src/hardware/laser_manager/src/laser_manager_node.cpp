@@ -7,6 +7,7 @@
 #include "sensor_msgs/LaserScan.h"
 #include "tf/transform_listener.h"
 #include "occupancy_grid_utils/ray_tracer.h"
+#include "random_numbers/random_numbers.h"
 #include "rosbag/bag.h"
 #include "rosbag/view.h"
 #include <boost/foreach.hpp>
@@ -60,6 +61,7 @@ int main(int argc, char** argv)
     
     std::string file_name = "";
     bool use_bag = false;
+    float noise = 0;
     if(ros::param::has("~bag"))
     {
         ros::param::get("~bag", file_name);
@@ -71,6 +73,8 @@ int main(int argc, char** argv)
         ros::param::get("~rear", is_rear);
     if(ros::param::has("~dynamic_map"))
         ros::param::get("~dynamic_map", dynamicMap);
+    if(ros::param::has("~noise"))
+        ros::param::get("~noise", noise);
 
     ros::Rate loop(60);
     ros::Rate loop_bag(10);    
@@ -140,6 +144,7 @@ int main(int argc, char** argv)
     }
 
     //tf::Quaternion zrot(0,0,1,0);
+    random_numbers::RandomNumberGenerator rnd;
     while(ros::ok())
     {
         if(simulated)
@@ -164,6 +169,10 @@ int main(int argc, char** argv)
 
             simulatedScan = *occupancy_grid_utils::simulateRangeScan(map, sensorPose, scanInfo);
             simulatedScan.header.stamp = ros::Time::now();
+            if(noise > 0)
+                for(int i=0; i<simulatedScan.ranges.size(); i++)
+                    simulatedScan.ranges[i] += rnd.uniformReal(-noise, noise);
+
             if(is_rear)
             {
                 simulatedScan.header.frame_id = "laser_link_rear";
