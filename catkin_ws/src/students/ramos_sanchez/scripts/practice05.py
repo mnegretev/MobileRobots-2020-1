@@ -31,12 +31,12 @@ def attraction_force(robot_x, robot_y, goal_x, goal_y):
     # where force_x and force_y are the X and Y components
     # of the resulting attraction force.
     #
-    alpha = 1
+    alpha = 1.1
     dif_x = robot_x - goal_x
     dif_y = robot_y - goal_y
     mag = math.sqrt(dif_x**2 + dif_y**2)
-    Fatt_x = (dif_x / mag) if mag > 0 else 0
-    Fatt_y = (dif_y / mag) if mag > 0 else 0
+    Fatt_x = (dif_x / mag) if mag != 0 else 0
+    Fatt_y = (dif_y / mag) if mag != 0 else 0
 
     [force_x, force_y] = alpha * Fatt_x, alpha * Fatt_y
     return [force_x, force_y]
@@ -53,18 +53,20 @@ def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     # where force_x and force_y are the X and Y components
     # of the resulting rejection force.
     #
-    beta = 2
+    beta = 4.2
     dis0 = 1
     Frej_x = 0
     Frej_y = 0
     N = len(laser_readings)
     for distance, angleL in laser_readings:
-        if distance < dis0:
+        angResult = angleL + robot_a
+        if dis0 > distance > 0:
             mag = beta * math.sqrt((1/distance) - (1/dis0))
         else:
             mag = 0
-        Frej_x += mag * math.cos(robot_a + angleL)
-        Frej_y += mag * math.sin(robot_a + angleL)
+
+        Frej_x += mag * math.cos(angResult)
+        Frej_y += mag * math.sin(angResult)
 
     force_x = Frej_x / N
     force_y = Frej_y / N
@@ -112,7 +114,7 @@ def callback_pot_fields_goal(msg):
     #     Update distance to goal position
 
     epsilon = 0.5
-    tol = 0.1
+    tol = 0.12
     robot_x, robot_y, robot_a = get_robot_pose(listener)
     distance_g = math.sqrt((goal_x - robot_x) ** 2 + (goal_y - robot_y) ** 2)
 
