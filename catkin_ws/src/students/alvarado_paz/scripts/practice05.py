@@ -54,8 +54,8 @@ def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     # where force_x and force_y are the X and Y components
     # of the resulting rejection force. 
     #
-    beta  = 8
-    do    = 1 # distancia de influencia
+    beta  = 6
+    do    = 1.4 # distancia de influencia
     mag   = 0
     suma_fx  = 0
     suma_fy  = 0
