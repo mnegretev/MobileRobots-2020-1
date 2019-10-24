@@ -41,6 +41,10 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>geometry_msgs</build_depend>
+
+  <build_depend>occupancy_grid_utils</build_depend>
+
+
   <build_depend>nav_msgs</build_depend>
   <build_depend>navig_msgs</build_depend>
   <build_depend>roscpp</build_depend>
@@ -56,6 +60,8 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>tf</run_depend>
+
+  <run_depend>occupancy_grid_utils</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
