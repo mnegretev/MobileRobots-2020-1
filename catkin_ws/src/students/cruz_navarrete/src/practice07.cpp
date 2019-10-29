@@ -9,7 +9,7 @@
  * - For each particle, calculate a weight in [0,1) indicating the similarity between
  *   its simulated scan and a real scan. 
  */
-//rgb
+//
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #include "nav_msgs/GetMap.h"
@@ -20,9 +20,9 @@
 
 #define NOMBRE "CRUZ_NAVARRETE"
 
-#define NUMBER_OF_PARTICLES 1000
-#define LASER_DOWNSAMPLING 100
-#define SENSOR_NOISE 2
+//#define NUMBER_OF_PARTICLES 1000
+#define LASER_DOWNSAMPLING 10
+#define SENSOR_NOISE 1.1
 
 std::vector<geometry_msgs::Pose> get_initial_distribution(int N, float min_x, float min_y, float max_x, float max_y)
 {
@@ -57,9 +57,9 @@ void simulate_particle_scans(std::vector<geometry_msgs::Pose>& particles, nav_ms
      * Check online documentation
      * http://docs.ros.org/groovy/api/occupancy_grid_utils/html/namespaceoccupancy__grid__utils.html
      */
-    for(size_t i=0; i< particles.size(); i++)
+    for(int i=0; i< particles.size(); i++)
     {
-        simulated_scans[i] = *occupancy_grid_utils::simulateRangeScan(map,particles[i],scan_info);
+        simulated_scans[i] = *occupancy_grid_utils::simulateRangeScan(map,particles[i],scan_info, false);
      
     }
     
@@ -78,6 +78,7 @@ void calculate_particle_weights(std::vector<sensor_msgs::LaserScan>& simulated_s
      */
     weights_sum = 0;
     max_weight = 0;
+
     for(size_t i=0; i < simulated_scans.size(); i++)
     {   
         float d = 0;
