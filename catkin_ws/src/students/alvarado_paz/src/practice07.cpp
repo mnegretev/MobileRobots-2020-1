@@ -34,10 +34,10 @@ std::vector<geometry_msgs::Pose> get_initial_distribution(int N, float min_x, fl
     std::vector<geometry_msgs::Pose> particles;
     random_numbers::RandomNumberGenerator rng;
       
-    for(int i=0; i> N; i++){
+    for(int i=0; i < N; i++){
     	particles[i].position.x = rng.uniformReal(min_x, max_x);
         particles[i].position.y = rng.uniformReal(min_y, max_y);
-	float a=rng.uniformReal(-M_PI,M_PI);
+		float a=rng.uniformReal(-M_PI,M_PI);
         particles[i].orientation.w = cos(a/2);
         particles[i].orientation.z = sin(a/2);
 	}
@@ -56,10 +56,12 @@ void simulate_particle_scans(std::vector<geometry_msgs::Pose>& particles, nav_ms
      * Check online documentation
      * http://docs.ros.org/groovy/api/occupancy_grid_utils/html/namespaceoccupancy__grid__utils.html
      */ //arriba del 10
-     for(int i=0; i < particles.size(); i++){
-
-      //simulated_scans =   *occupancy_grid_utils::simulateRangeScan( map, particles[i],scan_info );
-	}
+    
+	for(size_t i=0; i< particles.size(); i++)
+    {
+        simulated_scans[i] = *occupancy_grid_utils::simulateRangeScan(map,particles[i],scan_info);
+     
+    }
 
 }
 
@@ -73,20 +75,20 @@ void calculate_particle_weights(std::vector<sensor_msgs::LaserScan>& simulated_s
      * Determine also the sum of all weights and maximum of all weights.
      * Store results in the corresponding variables
      */ // usa
-     for(int i=0; i<simulated_scans.size(); i++)
-     {
-	float d = 0;
-	for(int j=0; j< simulated_scans[i].ranges.size();j++)
-	{
-		d += fabs(simulated_scans[i].ranges[j] - real_scan.ranges[j*LASER_DOWNSAMPLING]); 
-		d /= simulated_scans[i].ranges.size();
-		weights[i] = exp(-d*d/SENSOR_NOISE);
-		weights_sum += weights[i];
-		max_weight = std::max(max_weight,weights[i]);
- 
-		
-	} 
-     }
+     
+    weights_sum = 0;
+    max_weight = 0;
+    for(size_t i=0; i < simulated_scans.size(); i++)
+    {   
+        float d = 0;
+        for(size_t j=0; j < simulated_scans[i].ranges.size(); j++)
+        	d += fabs(simulated_scans[i].ranges[j] - real_scan.ranges[j*LASER_DOWNSAMPLING]);
+        
+        d /= simulated_scans[i].ranges.size();
+        weights[i] = exp(-d*d/SENSOR_NOISE);
+        weights_sum += weights[i];
+        max_weight = std::max(max_weight,weights[i]);
+    }
 
 }
 
