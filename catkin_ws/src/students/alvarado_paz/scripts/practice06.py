@@ -21,9 +21,9 @@ NAME = "ALVARADO_PAZ"
 # TODO:
 # Tune this constants to get a good performance.
 #
-P2P_DIST_THRESHOLD  = 0.5  # 0.3
-MIN_POINTS_PER_LINE = 15   # 20
-MAX_DIST_P_TO_LINE  = 0.10 # 0.15
+P2P_DIST_THRESHOLD  = 0.3  # 0.3
+MIN_POINTS_PER_LINE = 18   # 20
+MAX_DIST_P_TO_LINE  = 0.12 # 0.15
 
 def get_line_equation(x1, y1, x2, y2):
     #

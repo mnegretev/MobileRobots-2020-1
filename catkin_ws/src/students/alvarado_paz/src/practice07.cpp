@@ -33,7 +33,7 @@ std::vector<geometry_msgs::Pose> get_initial_distribution(int N, float min_x, fl
      */
     std::vector<geometry_msgs::Pose> particles;
     random_numbers::RandomNumberGenerator rng;
-      
+    particles.resize(N);  
     for(int i=0; i < N; i++){
     	particles[i].position.x = rng.uniformReal(min_x, max_x);
         particles[i].position.y = rng.uniformReal(min_y, max_y);
