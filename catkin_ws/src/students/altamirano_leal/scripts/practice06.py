@@ -33,8 +33,8 @@ def get_line_equation(x1, y1, x2, y2):
     # Ax + By + C = 0
     # and return the equation coefficients [A,B,C]
     #
-   A = y1-y2;
-   B = x2-x1;
+   A = y2-y1;
+   B = x1-x2;
    C = -((A*x1) + (B*y1))
 
     return [A,B,C]
@@ -80,18 +80,17 @@ def cluster_by_distance(point_cloud):
     #         Reinitialize cluster with point (xi, yi): cluster = [[xi, yi]]
     # return clusters
     #
-    d0 = 0.1
     clusters = []
     cluster = [point_cloud[0]]
     for i in range(1 , len.point_cloud-1):
         [xi , yi] = point_cloud[i]
-        [xp , xp] = point_cloud[i-1]
+        [xp , yp] = point_cloud[i-1]
         d = math.sqrt(((xi-xp)*(xi-xp)) + ((yi-yp)*(yi-yp)))
 
-        if d < d0:
-            cluster.append([xi , yi])
+        if d < P2P_DIST_THRESHOLD:
+            cluster.a.append([xi , yi])
         else:
-            clusters.append(cluster)
+            clusters.a.append(cluster)
             cluster = [[xi , yi]]
     return clusters
 
@@ -118,12 +117,10 @@ def split_clusters(clusters):
     # return line_clusters
     #
     line_clusters = []
-    Pmin = 10
-    Pmax = 1
 
-    for i in range(0 , len.clusters-1):
+    for i in range(len(clusters)):
 
-        if len.clusters[i] < Pmin:
+        if len.clusters[i] <  MIN_POINTS_PER_LINE:
             continue
 
         [x1 , y1] = clusters[i][0]
@@ -131,7 +128,7 @@ def split_clusters(clusters):
         eq = get_line_equation(x1,y1,x2,y2)
         dist , farthest_point_index= find_farthests_point(eq, clusters[i])
 
-        if dist > Pmax:
+        if dist > MAX_DIST_P_TO_LINE:
             line_clusters.append(clusters[i][0:farthest_point_index])
             line_clusters.append(clusters[i][farthest_point_index:len(clusters[i])])
         else:
