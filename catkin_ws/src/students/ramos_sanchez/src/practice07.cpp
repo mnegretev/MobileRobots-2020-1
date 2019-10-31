@@ -18,7 +18,7 @@
 #include "occupancy_grid_utils/ray_tracer.h"
 #include "tf/transform_listener.h"
 
-#define NOMBRE "APELLIDO_PATERNO_APELLIDO_MATERNO"
+#define NOMBRE "Ramos_Sanchez"
 
 #define LASER_DOWNSAMPLING 10
 #define SENSOR_NOISE 1
