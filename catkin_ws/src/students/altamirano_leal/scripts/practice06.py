@@ -37,7 +37,7 @@ def get_line_equation(x1, y1, x2, y2):
    B = x1-x2;
    C = -((A*x1) + (B*y1))
 
-    return [A,B,C]
+   return [A,B,C]
 
 def find_farthests_point(line_equation, points):
     #
@@ -82,7 +82,7 @@ def cluster_by_distance(point_cloud):
     #
     clusters = []
     cluster = [point_cloud[0]]
-    for i in range(1 , len.point_cloud-1):
+    for i in range(1 , len(point_cloud)-1):
         [xi , yi] = point_cloud[i]
         [xp , yp] = point_cloud[i-1]
         d = math.sqrt(((xi-xp)*(xi-xp)) + ((yi-yp)*(yi-yp)))
