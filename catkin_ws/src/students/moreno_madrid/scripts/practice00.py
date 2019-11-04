@@ -45,7 +45,7 @@ def main():
         #
         cmd_vel = Twist()
         if obstacle_detected:
-            cmd_vel.linear.x = 0
+            cmd_vel.linear.x = 0.0
         else:
             cmd_vel.linear.x = 0.5
         pub_cmd_vel.publish(cmd_vel)
