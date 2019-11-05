@@ -17,7 +17,7 @@
 #define NOMBRE "ramirez_ancona"
 
 #define LASER_DOWNSAMPLING 10
-#define SENSOR_NOISE       0.5
+#define SENSOR_NOISE       0.6
 #define RESAMPLING_NOISE_POSITION 0.2
 #define RESAMPLING_NOISE_ANGLE    0.1
 #define MOVEMENT_NOISE_POSITION   0.1
@@ -164,8 +164,8 @@ void move_particles(std::vector<geometry_msgs::Pose>& particles, float delta_x, 
         particles[i].position.y += delta_x*sin(theta) + delta_y*cos(theta);
         particles[i].position.y += rnd.gaussian(0,MOVEMENT_NOISE_POSITION);
         float angle_noise = rnd.gaussian(0,MOVEMENT_NOISE_ANGLE);
-        particles[i].orientation.w = cos(theta+delta_t+angle_noise/2);
-        particles[i].orientation.z = sin(theta+delta_t+angle_noise/2);
+        particles[i].orientation.w = cos((theta+delta_t+angle_noise)/2);
+        particles[i].orientation.z = sin((theta+delta_t+angle_noise)/2);
       }
     
 }
