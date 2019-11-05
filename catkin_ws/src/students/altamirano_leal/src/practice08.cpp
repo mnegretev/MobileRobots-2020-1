@@ -76,6 +76,8 @@ void calculate_particle_weights(std::vector<sensor_msgs::LaserScan>& simulated_s
      * Determine also the sum of all weights and maximum of all weights.
      * Store results in the corresponding variables
      */
+    weights_sum = 0;
+    max_weight = 0;
     for ( size_t i = 0 ; i <simulated_scans.size (); i ++){
          float d = 0;
          for(size_t j=0; j < simulated_scans[i].ranges.size(); j++)
@@ -112,7 +114,7 @@ int random_choice(std::vector<float>& weights, float weights_sum)
 
         }
         else{
-            Peso = Peso - weights[i];
+            Peso -= weights[i];
             //std::cout << "PesoA menos " << std::endl;
             //std::cout << Peso << std::endl;
         }
@@ -138,7 +140,7 @@ std::vector<geometry_msgs::Pose> resample_particles(std::vector<geometry_msgs::P
 
      for (int i = 0; i < particles.size(); i++)
     {
-        /*int indice = random_choice(weights, weights_sum);
+        int indice = random_choice(weights, weights_sum);
         resampled_particles[i] = particles[indice];
         resampled_particles[i].position.x = resampled_particles[i].position.x + rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
         resampled_particles[i].position.y = resampled_particles[i].position.y + rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
@@ -146,15 +148,8 @@ std::vector<geometry_msgs::Pose> resample_particles(std::vector<geometry_msgs::P
         resampled_particles[i].orientation.w = cos(angul/2);
         resampled_particles[i].orientation.z = sin(angul/2);
 
-    }*/
-        int indise = random_choice(weights, weights_sum);
-        resampled_particles[i] = particles[indise];
-        resampled_particles[i].position.x = resampled_particles[i].position.x + rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
-        resampled_particles[i].position.y = resampled_particles[i].position.y + rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
-        float theta = (atan2(particles[indise].orientation.z,particles[indise].orientation.w) * 2) + rnd.gaussian(0, RESAMPLING_NOISE_ANGLE);
-        resampled_particles[i].orientation.w = cos(theta/2);
-        resampled_particles[i].orientation.z = sin(theta/2);       
-    }
+    }    
+    
     return resampled_particles;
 }
 
@@ -177,16 +172,15 @@ void move_particles(std::vector<geometry_msgs::Pose>& particles, float delta_x, 
        
         particles[i].position.x += delta_x*cos(theta/2) - delta_y*sin(theta/2) + rnd.gaussian(0,MOVEMENT_NOISE_POSITION);
         
-        particles[i].position.y += delta_y*cos(theta/2) + delta_y*cos(theta/2) + rnd.gaussian(0,MOVEMENT_NOISE_POSITION);
+        particles[i].position.y += delta_y*sin(theta/2) + delta_y*cos(theta/2) + rnd.gaussian(0,MOVEMENT_NOISE_POSITION);
         
       
 
         float angle_noise = rnd.gaussian(0,MOVEMENT_NOISE_ANGLE)/2;
-        particles[i].orientation.w = particles[i].orientation.w + cos(theta+delta_t+(angle_noise));
-        particles[i].orientation.z = particles[i].orientation.z + sin(theta+delta_t+(angle_noise));
+        particles[i].orientation.w =  cos((theta+delta_t+angle_noise)/2);
+        particles[i].orientation.z =  sin((theta+delta_t+angle_noise)/2);
 
       }
-    
 }
 
 void particles_marker(std::vector<geometry_msgs::Pose>& particles, std::vector<float>& weights, float max_weight,
