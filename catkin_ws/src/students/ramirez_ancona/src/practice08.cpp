@@ -17,7 +17,7 @@
 #define NOMBRE "ramirez_ancona"
 
 #define LASER_DOWNSAMPLING 10
-#define SENSOR_NOISE       0.6
+#define SENSOR_NOISE       0.8
 #define RESAMPLING_NOISE_POSITION 0.2
 #define RESAMPLING_NOISE_ANGLE    0.1
 #define MOVEMENT_NOISE_POSITION   0.1
@@ -175,6 +175,7 @@ void particles_marker(std::vector<geometry_msgs::Pose>& particles, std::vector<f
 {
     for(size_t i=0; i < particles.size(); i++)
     {
+
         mrk.points[i]   = particles[i].position;
         mrk.colors[i].r = 1.0 - weights[i]/max_weight;
         mrk.colors[i].g = weights[i]/max_weight;
@@ -276,9 +277,10 @@ int main(int argc, char** argv)
              * - Perform a resample according to the weights calculated in the previous step.
              *   Use the corresponding function.
              */
+            float delta_x_n = delta_x*cos(robot_a) + delta_y*sin(robot_a);
+            float delta_y_n = -delta_x*sin(robot_a) + delta_y*sin(robot_a);
 
-
-            move_particles(particles, delta_x, delta_y, delta_a);
+            move_particles(particles, delta_x_n, delta_y_n, delta_a);
             simulate_particle_scans(particles, map, scan_info, simulated_scans);
             calculate_particle_weights(simulated_scans, real_scan, weights, max_weight, weights_sum);
             particles = resample_particles(particles, weights, weights_sum);
