@@ -17,7 +17,7 @@
 #define NOMBRE "ramirez_ancona"
 
 #define LASER_DOWNSAMPLING 10
-#define SENSOR_NOISE       0.8
+#define SENSOR_NOISE       1.5
 #define RESAMPLING_NOISE_POSITION 0.2
 #define RESAMPLING_NOISE_ANGLE    0.1
 #define MOVEMENT_NOISE_POSITION   0.1
