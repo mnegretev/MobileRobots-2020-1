@@ -103,7 +103,6 @@ int random_choice(std::vector<float>& weights, float weights_sum)
      * Return the chosen integer. 
      */
      float random = rnd.uniformReal(0, weights_sum);
-     int chsn_int = 0;
      float aux = 0;
      for (int i = 0; i < weights.size(); i++)
      {
@@ -134,7 +133,7 @@ std::vector<geometry_msgs::Pose> resample_particles(std::vector<geometry_msgs::P
     {
         int index = random_choice(weights, weights_sum);
         resampled_particles[i] = particles[index];
-        resampled_particles[i].position.x +=rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
+        resampled_particles[i].position.x += rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
         resampled_particles[i].position.y += rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
         float theta = atan2(resampled_particles[i].orientation.z,resampled_particles[i].orientation.w) * 2 + rnd.gaussian(0, RESAMPLING_NOISE_ANGLE);
         resampled_particles[i].orientation.w = cos(theta/2);
@@ -159,11 +158,14 @@ void move_particles(std::vector<geometry_msgs::Pose>& particles, float delta_x, 
 
       for (int i = 0; i < particles.size(); i++)
       {
-        particles[i].position.x = 
-        particles[i].position.y = 
-        float theta = atan2(resampled_particles[i].orientation.z,resampled_particles[i].orientation.w) * 2; 
-        particles[i].orientation.w = cos(theta/2);
-        particles[i].orientation.z = sin(theta/2);
+        float theta = atan2(particles[i].orientation.z,particles[i].orientation.w) * 2; 
+        particles[i].position.x += delta_x*cos(theta) - delta_y*sin(theta);
+        particles[i].position.x += rnd.gaussian(0,MOVEMENT_NOISE_POSITION);  
+        particles[i].position.y += delta_x*sin(theta) + delta_y*cos(theta);
+        particles[i].position.y += rnd.gaussian(0,MOVEMENT_NOISE_POSITION);
+        float angle_noise = rnd.gaussian(0,MOVEMENT_NOISE_ANGLE);
+        particles[i].orientation.w = cos(theta+delta_t+angle_noise/2);
+        particles[i].orientation.z = sin(theta+delta_t+angle_noise/2);
       }
     
 }
@@ -274,6 +276,13 @@ int main(int argc, char** argv)
              * - Perform a resample according to the weights calculated in the previous step.
              *   Use the corresponding function.
              */
+
+
+            move_particles(particles, delta_x, delta_y, delta_a);
+            simulate_particle_scans(particles, map, scan_info, simulated_scans);
+            calculate_particle_weights(simulated_scans, real_scan, weights, max_weight, weights_sum);
+            particles = resample_particles(particles, weights, weights_sum);
+
             
             last_robot_x = robot_x;
             last_robot_y = robot_y;
