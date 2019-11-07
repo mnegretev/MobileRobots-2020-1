@@ -22,7 +22,7 @@
 
 #define NUMBER_OF_PARTICLES 1000
 #define LASER_DOWNSAMPLING 10
-#define SENSOR_NOISE 0.2
+#define SENSOR_NOISE 0.82 //0.2
 
 std::vector<geometry_msgs::Pose> get_initial_distribution(int N, float min_x, float min_y, float max_x, float max_y)
 {
