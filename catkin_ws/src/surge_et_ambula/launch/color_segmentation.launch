@@ -1,0 +1,47 @@
+<launch>
+  <param name="robot_description" textfile="$(find robotino_description)/robotino.urdf" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>
+  <node pkg="tf" type="static_transform_publisher" name="laser_base" args="0 0 0.23 0 0 0 base_link laser_link 30" />
+  
+  <group ns="hri">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find config_files)/rviz/color_segmentation.rviz"/>
+    <node name="simple_gui" pkg="simple_gui" type="simple_gui_node" output="screen"/>
+  </group>
+  
+  <group ns="hardware">
+    <node name="laser_manager" pkg="laser_manager" type="laser_manager_node" output="screen">
+      <param name="simul" value="true"/>
+      <param name="dynamic_map" value="false"/>
+    </node>
+    <node name="camera_rgb" pkg="camera_rgb" type="camera_rgb.py">
+      <param name="video_file" value="$(find camera_rgb)/videos/ball_b.mp4"/>
+    </node>
+    <node name="mobile_base" pkg="mobile_base" type="omni_base_node" output="screen">
+      <param name="simul" value="true"/>
+      <param name="port1" value="/dev/justinaRC30"/>
+      <param name="port2" value="/dev/justinaRC15"/>
+    </node>
+  </group>
+  
+  <group ns="navigation">
+    <group ns="localization">
+      <node name="map_server" pkg="map_server" type="map_server" output="screen"
+            args="$(find config_files)/occupancy_grids/Universum.yaml"/>
+      <node name="loc_amcl" pkg="amcl" type="amcl" output="screen" args="scan:=/hardware/scan">
+	<param name="odom_alpha1" value="0.6"/>
+	<param name="odom_alpha2" value="0.6"/>
+	<param name="odom_alpha3" value="0.6"/>
+	<param name="odom_alpha4" value="0.6"/>
+	<param name="odom_alpha5" value="0.6"/>
+	<param name="recovery_alpha_slow" value="0.001"/>
+	<param name="recovery_alpha_fast" value="0.1"/>
+	<param name="initial_pose_x" value="0.0"/>
+	<param name="initial_pose_y" value="0.0"/>
+	<param name="initial_pose_a" value="0.0"/>
+	<param name="update_min_a" value="0.3"/>
+	<param name="laser_min_range" value="0.3"/>
+	<param name="odom_model_type" value="omni"/>
+      </node>
+    </group>
+  </group>
+</launch>
