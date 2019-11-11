@@ -1,0 +1,16 @@
+Alumno: Alvarado Paz
+Calificación: 6
+Comentarios:
+El programa corre y las partículas convergen a una posición pero ésta
+es muy diferente a la posición del robot. Además, el programa siempre marca un error
+en los valores del quaternion de orientación.
+Se detectaron los siguientes errores:
+* En la función move_particles, las líneas:
+particles[i].orientation.x
+particles[i].orientation.y
+Deberían ser:
+particles[i].position.x
+particles[i].position.y
+
+*En la función main, falta convertir los deplazamientos delta_x y delta_y al
+sistema del robot.
