@@ -1,0 +1,5 @@
+Alumno: Ramos Sánchez
+Calificación: 8
+Comentarios:
+Todas las funciones son correctas, sin embargo, el robot no se localiza.
+Esto se debe a que faltó mandar a llamar las funciones en la función main. 
