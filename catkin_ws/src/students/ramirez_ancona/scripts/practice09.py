@@ -40,10 +40,19 @@ def callback_image(msg):
     img_bin = cv2.inRange(img_hsv, lower, upper)
     idx = cv2.findNonZero(img_bin)
     [centroid_r, centroid_c, a, b] = cv2.mean(idx)
-    cv2.circle(img_bgr, (int(centroid_r), int(centroid_c)), 25, [0, 255, 0], 3)
+    centroid_r, centroid_c = int(centroid_r), int(centroid_c)
+    if (centroid_r > 16):
+        if not(centroid_r == 27 and centroid_c == 83):
+            if  not(centroid_r == 30 and centroid_c == 88):
+                if not(centroid_r == 295  and centroid_c == 93):
+                    if  not(centroid_r == 228 and centroid_c == 112):
+                        if  not(centroid_r == 237 and centroid_c == 103):
+                            if  not(centroid_r == 219 and centroid_c == 95):
+                                cv2.circle(img_bgr, (int(centroid_r), int(centroid_c)), 25, [0, 255, 0], 3)
+                                #print int(centroid_r), int(centroid_c)
     cv2.imshow("BGR Image", img_bgr)
-    cv2.imshow("HSV Image", img_hsv)
-    cv2.imshow("BIN Image", img_bin)
+    #cv2.imshow("HSV Image", img_hsv)
+    #cv2.imshow("BIN Image", img_bin)
     cv2.waitKey(1)
     
     
