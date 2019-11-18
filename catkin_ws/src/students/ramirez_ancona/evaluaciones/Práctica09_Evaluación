@@ -1,0 +1,6 @@
+Alumno: Ramírez Ancona
+Calificación: 10
+Comentarios:
+El programa segmenta correctamente la pelota.
+Se sugiere utilizar un for con un if dentro
+para evitar el uso de tantos if's anidados. 
