@@ -1,0 +1,7 @@
+Alumno: Alvarado Paz
+Calificación: 8
+Comentarios:
+El programa segmenta correctamente la pelota, sin embargo, cuando no hay
+pelota en la escena, el programa dibuja un círculo en 0,0, indicando que
+la pelota está en estas coordenadas. Se especificó que el programa no
+debía dibujar nada si es que no hay pelota en la escena. 
