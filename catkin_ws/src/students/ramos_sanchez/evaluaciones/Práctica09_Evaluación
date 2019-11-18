@@ -1,0 +1,6 @@
+Alumno: Ramos Sánchez
+Calificación: 8
+Comentarios:
+El programa segmenta correctamente la pelota cuando esta aparece en
+la escena, sin embargo, si no hay pelota, el programa segmenta erróneamente
+una región de un color similar. 
