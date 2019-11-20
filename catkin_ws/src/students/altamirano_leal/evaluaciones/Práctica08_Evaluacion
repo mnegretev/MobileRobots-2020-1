@@ -1,0 +1,7 @@
+Alumno: Altamirano Leal
+Calificación: 8
+Comentarios:
+El programa tarda mucho en localizarse y se debe a los siguientes errores:
+* En la función move_robot, la rotación es de un ángulo theta, no theta/2.
+* En la función main, falta transformar los desplazamientos delta_x y delta_y al
+  marco de referencia del robot (están con respecto al marco absoluto).
