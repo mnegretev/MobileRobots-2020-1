@@ -1,0 +1,66 @@
+<launch>
+  <arg name="hostname" default="192.168.0.11" />
+  <arg name="tf_prefix" default="no_prefix"/>
+  <param name="robot_description" textfile="$(find robotino_description)/robotino.urdf" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>
+  <node pkg="tf" type="static_transform_publisher" name="laser_base" args="0 0 0.23 0 0 0 base_link laser_link 30" />
+  
+  <group ns="hri">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find config_files)/rviz/getting_started.rviz"/>
+    <node name="simple_gui" pkg="simple_gui" type="simple_gui_node" output="screen"/>
+  </group>
+
+  <node name="robotino_node" pkg="robotino_node" type="robotino_node" output="screen">
+        <param name="hostname" value="$(arg hostname)" />
+        <param name="max_linear_vel" value="1.0" />
+        <param name="min_linear_vel" value="0.01" />
+        <param name="max_angular_vel" value="1.0" />
+        <param name="min_angular_vel" value="0.01" />
+        <param name="ns_room_id" value="3" />
+        <param name="ns_ceil_height" value="3.0" />
+        <param name="tf_prefix" value="$(arg tf_prefix)" />
+        <remap from="robotino_joint_states" to="joint_states" />
+	<remap from="/cmd_vel" to="/hardware/mobile_base/cmd_vel"/>
+        <!--remap from="image_raw" to="image"/-->
+  </node>
+  <node name="robotino_odometry_node" pkg="robotino_node" type="robotino_odometry_node" output="screen">
+    <param name="hostname" value="$(arg hostname)" />
+    <param name="tf_prefix" value="$(arg tf_prefix)" />
+  </node>
+
+  <node name="robotino_laserrangefinder_node" pkg="robotino_node" type="robotino_laserrangefinder_node" output="screen">
+    <param name="hostname" value="$(arg hostname)" />
+    <param name="laserRangeFinderNumber" value="0" />
+    <param name="tf_prefix" value="$(arg tf_prefix)" />
+    <remap from="/scan" to="/hardware/scan"/>
+  </node>
+
+  <group ns="hardware">
+    <node name="joy" pkg="joy" type="joy_node" output="screen"/>
+  </group>
+  <group ns="interoperation">
+    <node name="joystick_robotino" pkg="joystick_teleop" type="joystick_robotino.py" output="screen" />
+  </group>
+    
+  <group ns="navigation">
+    <group ns="localization">
+      <node name="map_server" pkg="map_server" type="map_server" output="screen"
+            args="$(find config_files)/occupancy_grids/Universum.yaml"/>
+      <node name="loc_amcl" pkg="amcl" type="amcl" output="screen" args="scan:=/hardware/scan">
+	<param name="odom_alpha1" value="0.6"/>
+	<param name="odom_alpha2" value="0.6"/>
+	<param name="odom_alpha3" value="0.6"/>
+	<param name="odom_alpha4" value="0.6"/>
+	<param name="odom_alpha5" value="0.6"/>
+	<param name="recovery_alpha_slow" value="0.001"/>
+	<param name="recovery_alpha_fast" value="0.1"/>
+	<param name="initial_pose_x" value="0.0"/>
+	<param name="initial_pose_y" value="0.0"/>
+	<param name="initial_pose_a" value="0.0"/>
+	<param name="update_min_a" value="0.3"/>
+	<param name="laser_min_range" value="0.3"/>
+	<param name="odom_model_type" value="omni"/>
+      </node>
+    </group>
+  </group>
+</launch>
