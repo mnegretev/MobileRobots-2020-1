@@ -165,7 +165,8 @@ int main(int argc, char** argv)
                 sensorPose.orientation.z = q.z();
                 sensorPose.orientation.w = q.w();
             }
-            catch(...){std::cout << "LaserSimulator.-> Cannot get transform from base_link to map" << std::endl;}
+            catch(...){//std::cout << "LaserSimulator.-> Cannot get transform from base_link to map" << std::endl;
+            }
 
             simulatedScan = *occupancy_grid_utils::simulateRangeScan(map, sensorPose, scanInfo);
             simulatedScan.header.stamp = ros::Time::now();
