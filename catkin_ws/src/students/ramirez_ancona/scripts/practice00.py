@@ -37,7 +37,8 @@ def main():
     cmd_vel = Twist()
     global obstacleDetected
     obstacleDetected = False
-    while not rospy.is_shutdown():
+    attemps = 0
+    while not rospy.is_shutdown() and attemps < 25:
         #
         # TODO:
         # Declare a Twist message and assign the appropiate speeds:
@@ -47,9 +48,11 @@ def main():
         if obstacleDetected:
             cmd_vel.linear.x = 0
         else:
-            cmd_vel.linear.x = 0.5
+            cmd_vel.linear.x = 0.3
         pub_cmd_vel.publish(cmd_vel)
         loop.sleep()
+        #print loop.sleep()
+        attemps += 1
 
 
 if __name__ == '__main__':
