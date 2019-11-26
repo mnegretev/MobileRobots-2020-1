@@ -43,13 +43,18 @@ def main():
     global objeto_detectado 
     objeto_detectado=False
 
+    contador=0
+
     while not rospy.is_shutdown():
 
     	if objeto_detectado:
     		cmd_vel.linear.x=0
 
-    	else:
+    	if objeto_detectado != 1 and contadoe > 20 : 
     		cmd_vel.linear.x=0.5 #velocidad lineal = .5
+            
+            contador += 1
+
     	pub_cmd_vel.publish(cmd_vel) #publicar los valores de la velocidad para la coneccion a la ros
         #
         # TODO:
@@ -58,6 +63,8 @@ def main():
         # Publish the message.
         #
         loop.sleep()
+       
+
 
 
 if __name__ == '__main__':
