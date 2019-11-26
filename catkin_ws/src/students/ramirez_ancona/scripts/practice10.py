@@ -44,17 +44,20 @@ def train_perceptron(perceptron, dataset, labels, desired_digit):
     attemps = 0
     grad = numpy.zeros(784) + [1]
     tol = 0.001
-    alpha = 0.0005
-    while numpy.linalg.norm(grad) > tol and attemps < 250:
-        #print perceptron
+    alpha = 0.00005
+    l = []
+    for i in range(len(dataset)):
+        l.append(numpy.asarray(dataset[i]+[-1]))
+
+    perceptron = numpy.asarray(perceptron)
+    
+    while numpy.linalg.norm(grad) > tol and attemps < 500:
         grad = numpy.zeros(785)
         for j in range(len(dataset)):
-            y_hat = evaluate(perceptron, dataset[j] + [-1])
+            y_hat = evaluate(perceptron, l[j])
             y_des = 1 if labels[j] == desired_digit else 0
-            for i in range(len(dataset[j])):
-                grad[i] += (y_hat-y_des)*(y_hat-y_hat*y_hat) * dataset[j][i]
-        for i in range(len(grad)):
-            perceptron[i] -= alpha * grad[i]
+            grad = numpy.add((y_hat-y_des)*(y_hat-y_hat*y_hat) * l[j], grad)       
+            perceptron = numpy.add(-alpha*grad, perceptron)
         print str(numpy.linalg.norm(grad)) + " Attemps: " + str(attemps)
         attemps += 1
     return perceptron
