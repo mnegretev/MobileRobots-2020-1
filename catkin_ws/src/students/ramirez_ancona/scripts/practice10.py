@@ -9,7 +9,7 @@
 # corresponds to the trained digit or not. 
 #
 
-import numpy as np
+import numpy
 import cv2
 import math
 import rospy
@@ -25,7 +25,7 @@ def evaluate(perceptron, image):
     # Use of numpy.dot is strongly recommended to save execution time.
     # Return perceptron output.
     #
-    pp = np.dot(perceptron,image)
+    pp = numpy.dot(perceptron,image)
     output = 1 / (1+math.exp(-pp))
     return output
 
@@ -42,12 +42,12 @@ def train_perceptron(perceptron, dataset, labels, desired_digit):
     # Return the trained perceptron.
     #
     attemps = 0
-    grad = np.zeros(784) + [1]
+    grad = numpy.zeros(784) + [1]
     tol = 0.001
     alpha = 0.0005
-    while np.linalg.norm(grad) > tol and attemps < 1000:
-        print perceptron
-        grad = np.zeros(785)
+    while numpy.linalg.norm(grad) > tol and attemps < 250:
+        #print perceptron
+        grad = numpy.zeros(785)
         for j in range(len(dataset)):
             y_hat = evaluate(perceptron, dataset[j] + [-1])
             y_des = 1 if labels[j] == desired_digit else 0
@@ -55,8 +55,8 @@ def train_perceptron(perceptron, dataset, labels, desired_digit):
                 grad[i] += (y_hat-y_des)*(y_hat-y_hat*y_hat) * dataset[j][i]
         for i in range(len(grad)):
             perceptron[i] -= alpha * grad[i]
-
-    attemps += 1
+        print str(numpy.linalg.norm(grad)) + " Attemps: " + str(attemps)
+        attemps += 1
     return perceptron
 
 def load_dataset_digit(file_name):
