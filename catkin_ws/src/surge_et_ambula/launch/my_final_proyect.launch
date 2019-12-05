@@ -1,0 +1,8 @@
+<launch>
+        <node pkg="ramos_sanchez" type="main_node.py" name="main" />
+	<node pkg="ramos_sanchez" type="practice08" name="localization" />
+	<node pkg="ramos_sanchez" type="practice02solved.py" name="path_plannig" />
+	<node pkg="ramos_sanchez" type="practice03solved.py" name="path_smoothing" />
+	<node pkg="ramos_sanchez" type="practice04solved.py" name="position_control" />
+	<node pkg="ramos_sanchez" type="practice05solved.py" name="obstacle_avoidance" />
+</launch>
