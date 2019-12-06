@@ -71,6 +71,8 @@ def get_robot_pose(listener):
         robot_a = 2*math.atan2(rot[2], rot[3])
         if robot_a > math.pi:
             robot_a -= 2*math.pi
+        if robot_a < -math.pi:
+            robot_a += 2*math.pi
         return robot_x, robot_y, robot_a
     except:
         pass
@@ -119,7 +121,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
 
 def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     beta = 6.0 #Rejection constant
-    d0   = 1.5 #Distance of influence
+    d0   = 1.35 #Distance of influence
     force_x = 0
     force_y = 0
     for [distance, angle] in laser_readings:
