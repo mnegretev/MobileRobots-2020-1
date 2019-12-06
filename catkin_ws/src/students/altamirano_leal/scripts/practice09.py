@@ -16,7 +16,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from visualization_msgs.msg import Marker
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "ALtamirano_Leal"
 
 def callback_image(msg):
     bridge = CvBridge()
