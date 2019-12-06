@@ -55,7 +55,7 @@ def callback_follow_path(path):
         goal_x = path.poses[counter].pose.position.x
         goal_y = path.poses[counter].pose.position.y
         if error_local < 0.3:
-            counter += 4
+            counter += 3
         pub_cmd_vel.publish(calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y))
         robot_x, robot_y, robot_a = get_robot_pose(listener)
         error_global = math.sqrt((global_goal_x-robot_x)*(global_goal_x-robot_x) + (global_goal_y-robot_y)*(global_goal_y-robot_y))
