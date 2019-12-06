@@ -14,8 +14,7 @@
 #include "occupancy_grid_utils/ray_tracer.h"
 #include "tf/transform_listener.h"
 
-
-#define NOMBRE "APELLIDO_PATERNO_APELLIDO_MATERNO"
+#define NOMBRE "Altamirano_leal"
 
 #define LASER_DOWNSAMPLING 10
 #define SENSOR_NOISE       0.5
@@ -30,23 +29,25 @@
 std::vector<geometry_msgs::Pose> get_initial_distribution(int N, float min_x, float min_y, float max_x, float max_y)
 {
     std::vector<geometry_msgs::Pose> particles;
-    particles.resize(N);
     random_numbers::RandomNumberGenerator rnd;
-
+    particles.resize(N);
     /*
      * TODO:
      * Generate a set of N particles (each particle represented by a Pose structure)
      * with positions uniformly distributed within the given bounding box.
      */
-    for(size_t i=0; i < particles.size(); i++)
-    {
-        particles[i].position.x  = rnd.uniformReal(min_x, max_x);
-        particles[i].position.y  = rnd.uniformReal(min_y, max_y);
-        float a = rnd.uniformReal(-M_PI, M_PI);
-        particles[i].orientation.w = cos(a/2);
-        particles[i].orientation.z = sin(a/2);
+    //float angulo;
+    for (int i=0 ; i<N ; i++){
+        //agregamos una una posicion 
+        particles[i].position.x = rnd.uniformReal(min_x, max_x);
+        particles[i].position.y = rnd.uniformReal(min_y, max_y);
+        float angulo = rnd.uniformReal(-M_PI, M_PI);
+        //agregamos una orientacion
+        particles[i].orientation.w = cos(angulo/2);
+        particles[i].orientation.z = sin(angulo/2);
+
     }
-    return particles;
+   return particles;
 }
 
 void simulate_particle_scans(std::vector<geometry_msgs::Pose>& particles, nav_msgs::OccupancyGrid& map,
@@ -59,8 +60,10 @@ void simulate_particle_scans(std::vector<geometry_msgs::Pose>& particles, nav_ms
      * Check online documentation
      * http://docs.ros.org/groovy/api/occupancy_grid_utils/html/namespaceoccupancy__grid__utils.html
      */
-    for(size_t i=0; i < particles.size(); i++)
-        simulated_scans[i] = *occupancy_grid_utils::simulateRangeScan(map, particles[i], scan_info);
+     for(int i=0; i<particles.size(); i++)
+     {
+         simulated_scans[i] = *occupancy_grid_utils::simulateRangeScan(map, particles[i], scan_info, false);
+     }
 }
 
 void calculate_particle_weights(std::vector<sensor_msgs::LaserScan>& simulated_scans, sensor_msgs::LaserScan& real_scan,
@@ -75,15 +78,16 @@ void calculate_particle_weights(std::vector<sensor_msgs::LaserScan>& simulated_s
      */
     weights_sum = 0;
     max_weight = 0;
-    for(size_t i=0; i < simulated_scans.size(); i++)
-    {
-        weights[i] = 0;
-        for(size_t j=0; j < simulated_scans[i].ranges.size(); j++)
-            weights[i] += fabs(simulated_scans[i].ranges[j] - real_scan.ranges[j*LASER_DOWNSAMPLING]);
-        weights[i] = exp(-weights[i]/simulated_scans[i].ranges.size()/SENSOR_NOISE);
-        weights_sum += weights[i];
-        max_weight   = std::max(max_weight, weights[i]);
-    }
+    for ( size_t i = 0 ; i <simulated_scans.size (); i ++){
+         float d = 0;
+         for(size_t j=0; j < simulated_scans[i].ranges.size(); j++)
+             d += fabs(simulated_scans[i].ranges[j] - real_scan.ranges[j*LASER_DOWNSAMPLING]);
+         d /= simulated_scans[i].ranges.size();
+         weights[i] = exp(-(d*d)/SENSOR_NOISE);
+         weights_sum += weights[i];
+         max_weight = std::max(max_weight, weights[i]);         
+     }
+
 }
 
 int random_choice(std::vector<float>& weights, float weights_sum)
@@ -98,14 +102,24 @@ int random_choice(std::vector<float>& weights, float weights_sum)
      * the integers [0 1 2 3 4] would be p = [0.1 0.2 0.3 0.1 0.3].
      * Return the chosen integer. 
      */
-    
-    float beta = rnd.uniformReal(0, weights_sum);
-    for(int i=0; i < weights.size(); i++)
-        if(beta < weights[i])
+     float Peso = rnd.uniformReal(0, weights_sum);
+    //std::cout << "PesoA es " << std::endl;
+   // std::cout << Peso << std::endl;
+    for (int i=0 ; i < weights.size() ; i++){
+        if (Peso <  weights[i]){
+            //std::cout << "Peso final "  << std::endl;
+            //std::cout << Peso << std::endl;
+            //return weights[i];
             return i;
-        else
-            beta -= weights[i];
-    return -1;
+
+        }
+        else{
+            Peso -= weights[i];
+            //std::cout << "PesoA menos " << std::endl;
+            //std::cout << Peso << std::endl;
+        }
+    }
+    
 }
 
 std::vector<geometry_msgs::Pose> resample_particles(std::vector<geometry_msgs::Pose>& particles,
@@ -124,16 +138,18 @@ std::vector<geometry_msgs::Pose> resample_particles(std::vector<geometry_msgs::P
      * Return the set of new particles. 
      */
 
-    for(size_t i=0; i<particles.size(); i++)
+     for (int i = 0; i < particles.size(); i++)
     {
-        int idx = random_choice(weights, weights_sum);
-        resampled_particles[i].position.x = particles[idx].position.x + rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
-        resampled_particles[i].position.y = particles[idx].position.y + rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
-        float angle = atan2(particles[idx].orientation.z, particles[idx].orientation.w)*2;
-        angle += rnd.gaussian(0, RESAMPLING_NOISE_ANGLE);
-        resampled_particles[i].orientation.w = cos(angle/2);
-        resampled_particles[i].orientation.z = sin(angle/2);
-    }
+        int indice = random_choice(weights, weights_sum);
+        resampled_particles[i] = particles[indice];
+        resampled_particles[i].position.x = resampled_particles[i].position.x + rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
+        resampled_particles[i].position.y = resampled_particles[i].position.y + rnd.gaussian(0, RESAMPLING_NOISE_POSITION);
+        float angul = atan2(resampled_particles[i].orientation.z,resampled_particles[i].orientation.w) * 2 + rnd.gaussian(0, RESAMPLING_NOISE_ANGLE);
+        resampled_particles[i].orientation.w = cos(angul/2);
+        resampled_particles[i].orientation.z = sin(angul/2);
+
+    }    
+    
     return resampled_particles;
 }
 
@@ -149,15 +165,22 @@ void move_particles(std::vector<geometry_msgs::Pose>& particles, float delta_x, 
      * Add gaussian noise to each new position. Use MOVEMENT_NOISE_POSITION and MOVEMENT_NOISE_ANGLE
      * as covariances. 
      */
-    for(size_t i=0; i < particles.size(); i++)
-    {
-        float a = atan2(particles[i].orientation.z, particles[i].orientation.w)*2;
-        particles[i].position.x += delta_x*cos(a) - delta_y*sin(a) + rnd.gaussian(0, MOVEMENT_NOISE_POSITION);
-        particles[i].position.y += delta_x*sin(a) + delta_y*cos(a) + rnd.gaussian(0, MOVEMENT_NOISE_POSITION);
-        a += delta_t + rnd.gaussian(0, MOVEMENT_NOISE_ANGLE);
-        particles[i].orientation.w = cos(a/2);
-        particles[i].orientation.z = sin(a/2);
-    }
+
+      for (int i = 0; i < particles.size(); i++)
+      {
+        float theta = atan2(particles[i].orientation.z,particles[i].orientation.w) * 2; 
+       
+        particles[i].position.x += delta_x*cos(theta/2) - delta_y*sin(theta/2) + rnd.gaussian(0,MOVEMENT_NOISE_POSITION);
+        
+        particles[i].position.y += delta_y*sin(theta/2) + delta_y*cos(theta/2) + rnd.gaussian(0,MOVEMENT_NOISE_POSITION);
+        
+      
+
+        float angle_noise = rnd.gaussian(0,MOVEMENT_NOISE_ANGLE)/2;
+        particles[i].orientation.w =  cos((theta+delta_t+angle_noise)/2);
+        particles[i].orientation.z =  sin((theta+delta_t+angle_noise)/2);
+
+      }
 }
 
 void particles_marker(std::vector<geometry_msgs::Pose>& particles, std::vector<float>& weights, float max_weight,
@@ -241,8 +264,6 @@ int main(int argc, char** argv)
     float delta_x;
     float delta_y;
     float delta_a;
-
-    int contador;
     
     std::vector<geometry_msgs::Pose> particles = get_initial_distribution(N, min_x, min_y, max_x, max_y);
     simulate_particle_scans(particles, map, scan_info, simulated_scans);
@@ -250,7 +271,6 @@ int main(int argc, char** argv)
 
     while(ros::ok())
     {
-        contador = contador+1;
         get_robot_odometry(&listener, robot_x, robot_y, robot_a);
         delta_x = robot_x - last_robot_x;
         delta_y = robot_y - last_robot_y;
@@ -259,7 +279,7 @@ int main(int argc, char** argv)
            fabs(robot_a - last_robot_a) > THRESHOLD_ANGLE)
         {
             std::cout << "Updating robot position..." << std::endl;
-
+            std::cout << srv_get_map << std::endl;
             /*
              * TODO:
              * - Calculate the displacement w.r.t. robot's frame, i.e. rotate delta_x and delta_y
@@ -270,12 +290,14 @@ int main(int argc, char** argv)
              * - Perform a resample according to the weights calculated in the previous step.
              *   Use the corresponding function.
              */
-            float dx =  delta_x*cos(robot_a) + delta_y*sin(robot_a);
-            float dy = -delta_x*sin(robot_a) + delta_y*cos(robot_a);
-            move_particles(particles, dx, dy, delta_a);
+
+
+            move_particles(particles, delta_x, delta_y, delta_a);
             simulate_particle_scans(particles, map, scan_info, simulated_scans);
             calculate_particle_weights(simulated_scans, real_scan, weights, max_weight, weights_sum);
             particles = resample_particles(particles, weights, weights_sum);
+
+            
             last_robot_x = robot_x;
             last_robot_y = robot_y;
             last_robot_a = robot_a;

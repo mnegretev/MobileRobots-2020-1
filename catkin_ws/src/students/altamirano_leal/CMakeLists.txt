@@ -153,7 +153,6 @@ add_executable(practice08 src/practice08.cpp)
 ## same as for the library above
 add_dependencies(practice07 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(practice08 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 ## Specify libraries to link a library or executable target against
 target_link_libraries(practice07
   ${catkin_LIBRARIES}

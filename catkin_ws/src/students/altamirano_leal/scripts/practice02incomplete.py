@@ -139,8 +139,8 @@ def callback_a_star(req):
     # Use the 'steps' variable to store the total steps needed for calculations
     # HINT: Use a heap structure to keep track of the node with the smallest f-value
     #
-    start_idx  = int((req.start.pose.position.x - map.info.origin.position.x)/map.info.resolution)
-    start_idx += int((req.start.pose.position.y - map.info.origin.position.y)/map.info.resolution)*map.info.width
+    start_idx  = int((Posicion[0] - map.info.origin.position.x)/map.info.resolution)
+    start_idx += int((Posicion[1] - map.info.origin.position.y)/map.info.resolution)*map.info.width
     goal_idx   = int((req.goal.pose.position.x  - map.info.origin.position.x)/map.info.resolution)
     goal_idx  += int((req.goal.pose.position.y  - map.info.origin.position.y)/map.info.resolution)*map.info.width
     
@@ -198,12 +198,35 @@ def callback_a_star(req):
     pub_path.publish(msg_path)
     return CalculatePathResponse(msg_path)
 
+    def Posicion(msg):
+    #marker = []
+    #marker = Marker()
+    #x=marker.pose.position
+    #print(x)
+    x=0
+    y=0
+    for q in msg.points:
+        x=q.x+x
+        y=q.y+y
+    x=x/1000
+    y=y/1000
+    print("x ")
+    print(x)
+    print("y ")
+    print(y)
+    pos.x=x
+    pos.y=y
+    pos=[pos.x,pos.y]
+    return pos
+
+
 def main():
     print "PRACTICE 02 - " + NAME
     rospy.init_node("practice02")
     rospy.Service('/navigation/path_planning/dijkstra_search', CalculatePath, callback_dijkstra)
     rospy.Service('/navigation/path_planning/a_star_search'  , CalculatePath, callback_a_star)
     rospy.wait_for_service('/navigation/localization/static_map')
+    rospy.Subscriber("/hri/visualization_marker",Marker, Posicion)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         loop.sleep()
