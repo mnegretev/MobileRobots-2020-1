@@ -63,4 +63,7 @@
       </node>
     </group>
   </group>
+	<node pkg="altamirano_leal" type="practice02solved.py" name="path_plannig" />
+	<node pkg="altamirano_leal" type="practice03solved.py" name="path_smoothing" />
+	<node pkg="altamirano_leal" type="practice04solved.py" name="position_control" />
 </launch>
