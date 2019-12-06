@@ -39,7 +39,6 @@ from nav_msgs.msg import OccupancyGrid
 from nav_msgs.msg import Path
 from navig_msgs.srv import CalculatePath
 from navig_msgs.srv import CalculatePathResponse
-from std_msgs.msg import String
 
 NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
 
@@ -200,7 +199,6 @@ def get_nearness(map, size):
     return nearness_map
 
 def callback_generic(req, algorithm):
-    global strx, stry, stra
     print "Calculating path by " + algorithm + " search"
     if rospy.has_param("/navigation/path_planning/inflation_radius"):
         inflation_radius = float(rospy.get_param("/navigation/path_planning/inflation_radius"))
@@ -219,8 +217,8 @@ def callback_generic(req, algorithm):
     inflated_map = inflate_map(map, int(inflation_radius/req.map.info.resolution))
     nearness_map = get_nearness(inflated_map, int(nearness_radius/req.map.info.resolution))
     
-    start_x = int((strx - req.map.info.origin.position.x)/req.map.info.resolution)
-    start_y = int((stry - req.map.info.origin.position.y)/req.map.info.resolution)
+    start_x = int((req.start.pose.position.x - req.map.info.origin.position.x)/req.map.info.resolution)
+    start_y = int((req.start.pose.position.y - req.map.info.origin.position.y)/req.map.info.resolution)
     goal_x  = int((req.goal.pose.position.x  - req.map.info.origin.position.x)/req.map.info.resolution)
     goal_y  = int((req.goal.pose.position.y  - req.map.info.origin.position.y)/req.map.info.resolution)
 
@@ -252,20 +250,11 @@ def callback_a_star(req):
 def callback_dijkstra(req):
     return callback_generic(req, "Dijkstra")
 
-def start_callback(msg):
-	global strx, stry, stra
-	message = msg.data
-	start_position = message.split(",")
-	strx = float(start_position[0])
-	stry = float(start_position[1])
-	stra = float(start_position[2])
-
 def main():
     print "PRACTICE 02 - " + NAME
     rospy.init_node("practice02")
     rospy.Service('/navigation/path_planning/dijkstra_search', CalculatePath, callback_dijkstra)
     rospy.Service('/navigation/path_planning/a_star_search'  , CalculatePath, callback_a_star)
-    rospy.Subscriber("/navigation/localization", String, start_callback)
     rospy.wait_for_service('/navigation/localization/static_map')
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():

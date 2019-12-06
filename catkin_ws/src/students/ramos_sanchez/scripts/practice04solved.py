@@ -15,6 +15,8 @@ import tf
 import math
 from nav_msgs.msg import Path
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import LaserScan
+from std_msgs.msg import String
 
 NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
 
@@ -89,6 +91,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # and return it (check online documentation for the Twist message).
     # Remember to keep error angle in the interval (-pi,pi]
     #
+    global laser_readings
     v_max = 0.8
     w_max = 1.0
     alpha = 0.2
@@ -105,11 +108,42 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     cmd_vel = Twist()
     cmd_vel.linear.x  = v_max*math.exp(-error_a*error_a/alpha)
     cmd_vel.angular.z = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
+    rfx, rfy = rejection_force(robot_x, robot_y, robot_a, laser_readings)
+    rfx_robot = rfx * math.cos(robot_a) - rfy * math.sin(robot_a)
+    rfy_robot = rfx * math.sin(robot_a) + rfy * math.cos(robot_a)
+    pub_pot_fields = rospy.Publisher("/campos", String, queue_size=1)
+    message = str(rfy_robot) + " " + str(rfx_robot)
+    pub_pot_fields.publish(message)
+    cmd_vel.linear.y = - rfy_robot * 0.06
     return cmd_vel
+
+def rejection_force(robot_x, robot_y, robot_a, laser_readings):
+    beta = 6.0 #Rejection constant
+    d0   = 1.0 #Distance of influence
+    force_x = 0
+    force_y = 0
+    for [distance, angle] in laser_readings:
+        if distance < d0 and distance > 0:
+            mag = beta*math.sqrt(1/distance - 1/d0)
+        else:
+            mag = 0
+        force_x += mag*math.cos(angle + robot_a)
+        force_y += mag*math.sin(angle + robot_a)
+    if len(laser_readings) == 0:
+        return [force_x, force_y]
+    [force_x, force_y] = [force_x/len(laser_readings), force_y/len(laser_readings)]
+    return [force_x, force_y]
+
+def callback_scan(msg):
+    global laser_readings
+    laser_readings = [[0,0] for i in range(len(msg.ranges))]
+    for i in range(len(msg.ranges)):
+        laser_readings[i] = [msg.ranges[i], msg.angle_min + i*msg.angle_increment]
 
 def main():
     print "PRACTICE 04 - " + NAME
     rospy.init_node("practice04")
+    rospy.Subscriber("/hardware/scan", LaserScan, callback_scan)
     rospy.Subscriber('/navigation/simple_move/follow_path', Path, callback_follow_path)
     
     loop = rospy.Rate(20)

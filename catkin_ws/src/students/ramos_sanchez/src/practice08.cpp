@@ -280,13 +280,14 @@ int main(int argc, char** argv)
             last_robot_x = robot_x;
             last_robot_y = robot_y;
             last_robot_a = robot_a;
+            
             cord.data = std::to_string(last_robot_x) + "," + std::to_string(last_robot_y) + "," + std::to_string(last_robot_a);
             position.publish(cord);
             //std::cout << cord << std::endl;
         }
-
         particles_marker(particles, weights, max_weight, mrk);
         pub_markers.publish(mrk);
+        
         loop.sleep();
         ros::spinOnce();
     }
