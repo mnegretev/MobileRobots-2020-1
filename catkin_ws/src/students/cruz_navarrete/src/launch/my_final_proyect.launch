@@ -1,0 +1,6 @@
+<launch>
+	<node pkg="cruz_navarrete" type="main_node.py" name="call_other_practices" />
+	<node pkg="cruz_navarrete" type="practice02solved.py" name="path_plannig" />
+	<node pkg="cruz_navarrete" type="practice03solved.py" name="path_smoothing" />
+	<node pkg="cruz_navarrete" type="practice04solved.py" name="position_control" />
+</launch>
