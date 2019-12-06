@@ -1,0 +1,7 @@
+<launch>
+  <node name="practice02solved" pkg='ramirez_ancona' type='practice02solved.py'/>
+  <node name="practice03solved" pkg='ramirez_ancona' type='practice03solved.py'/>
+  <node name="practice04solved" pkg='ramirez_ancona' type='practice04solved.py'/>
+  <node name="main_node" pkg='ramirez_ancona' type='main_node.py'/>
+</launch>
+
