@@ -113,15 +113,15 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     rfx, rfy = rejection_force(robot_x, robot_y, robot_a, laser_readings)
     rfx_robot = rfx * math.cos(robot_a) - rfy * math.sin(robot_a)
     rfy_robot = rfx * math.sin(robot_a) + rfy * math.cos(robot_a)
-    pub_pot_fields = rospy.Publisher("/campos", String, queue_size=1)
-    message = str(rfy_robot) + " " + str(rfx_robot)
-    pub_pot_fields.publish(message)
-    cmd_vel.linear.y =  rfy_robot * 0.4
+    #pub_pot_fields = rospy.Publisher("/campos", String, queue_size=1)
+    #message = str(rfy_robot) + " " + str(rfx_robot)
+    #pub_pot_fields.publish(message)
+    cmd_vel.linear.y = rfy_robot * 0.4
     return cmd_vel
 
 def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     beta = 6.0 #Rejection constant
-    d0   = 1.35 #Distance of influence
+    d0   = 1.15 #Distance of influence
     force_x = 0
     force_y = 0
     for [distance, angle] in laser_readings:
@@ -134,7 +134,7 @@ def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     if len(laser_readings) == 0:
         return [force_x, force_y]
     [force_x, force_y] = [force_x/len(laser_readings), force_y/len(laser_readings)]
-    return [force_x, force_y]
+    return [force_x, -force_y]
 
 def callback_scan(msg):
     global laser_readings
