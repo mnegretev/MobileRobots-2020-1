@@ -61,8 +61,7 @@ def smooth_path(path):
 		smooth_path = calculated_path(path)
 		return smooth_path.smooth_path
 	except rospy.ServiceException, e:
-		print
-		"Service call failed: %s" % e
+		print "Service call failed: %s" % e
 
 def control(smooth_path):
 	pub_smooth_path = rospy.Publisher('/navigation/simple_move/follow_path', Path, queue_size=1)

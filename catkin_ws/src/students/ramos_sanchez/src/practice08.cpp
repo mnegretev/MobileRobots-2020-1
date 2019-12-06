@@ -200,7 +200,7 @@ int main(int argc, char** argv)
     ros::Rate loop(10);
     ros::Subscriber sub_scan = n.subscribe("/hardware/scan", 1, callback_laser_scan);
     ros::Publisher  pub_markers  = n.advertise<visualization_msgs::Marker>("/hri/visualization_marker", 1);
-    ros::Publisher position = n.advertise<std_msgs::String>("/navigation/localization", 1);
+    //ros::Publisher position = n.advertise<std_msgs::String>("/navigation/localization", 1);
     std_msgs::String cord;
 
     tf::TransformListener listener;
@@ -281,8 +281,8 @@ int main(int argc, char** argv)
             last_robot_y = robot_y;
             last_robot_a = robot_a;
             
-            cord.data = std::to_string(last_robot_x) + "," + std::to_string(last_robot_y) + "," + std::to_string(last_robot_a);
-            position.publish(cord);
+            //cord.data = std::to_string(last_robot_x) + "," + std::to_string(last_robot_y) + "," + std::to_string(last_robot_a);
+            //position.publish(cord);
             //std::cout << cord << std::endl;
         }
         particles_marker(particles, weights, max_weight, mrk);
