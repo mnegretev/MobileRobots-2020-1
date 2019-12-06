@@ -41,13 +41,11 @@
       </node>
     </group>
   </group>
-<<<<<<< HEAD
+
 	<node pkg="altamirano_leal" type="practice02solved.py" name="path_plannig" />
 	<node pkg="altamirano_leal" type="practice03solved.py" name="path_smoothing" />
 	<node pkg="altamirano_leal" type="practice04solved.py" name="position_control" />
 	
         
-=======
 
->>>>>>> f49d5e61efe5deaba88b5c96f85fcfdf7eb4106c
 </launch>
