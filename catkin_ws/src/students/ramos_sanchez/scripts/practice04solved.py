@@ -114,7 +114,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     pub_pot_fields = rospy.Publisher("/campos", String, queue_size=1)
     message = str(rfy_robot) + " " + str(rfx_robot)
     pub_pot_fields.publish(message)
-    cmd_vel.linear.y = - rfy_robot * 0.06
+    cmd_vel.linear.y = - rfy_robot * 0.12
     return cmd_vel
 
 def rejection_force(robot_x, robot_y, robot_a, laser_readings):
