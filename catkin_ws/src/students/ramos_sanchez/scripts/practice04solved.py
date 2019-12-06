@@ -121,7 +121,7 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
 
 def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     beta = 6.0 #Rejection constant
-    d0   = 1.35 #Distance of influence
+    d0   = 1.15 #Distance of influence
     force_x = 0
     force_y = 0
     for [distance, angle] in laser_readings:
@@ -134,7 +134,7 @@ def rejection_force(robot_x, robot_y, robot_a, laser_readings):
     if len(laser_readings) == 0:
         return [force_x, force_y]
     [force_x, force_y] = [force_x/len(laser_readings), force_y/len(laser_readings)]
-    return [force_x, force_y]
+    return [force_x, -force_y]
 
 def callback_scan(msg):
     global laser_readings
