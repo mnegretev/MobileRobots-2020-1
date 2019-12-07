@@ -17,7 +17,7 @@ from navig_msgs.srv import SmoothPath
 from navig_msgs.srv import SmoothPathResponse
 from collections import deque
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "ALVARADO_PAZ"
 
 def get_smooth_path(original_path, alpha, beta):
     #

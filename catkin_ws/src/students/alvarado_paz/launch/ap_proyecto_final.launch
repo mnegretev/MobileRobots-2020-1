@@ -1,0 +1,6 @@
+<launch>
+	<node pkg="alvarado_paz" type="proyecto_final_node.py" name="call_other_practices" />
+	<node pkg="alvarado_paz" type="practice02solved.py" name="path_plannig" />
+	<node pkg="alvarado_paz" type="practice03solved.py" name="path_smoothing" />
+	<node pkg="alvarado_paz" type="practice04solved.py" name="position_control" />
+</launch>

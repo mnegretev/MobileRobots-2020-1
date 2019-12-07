@@ -18,7 +18,7 @@ from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from sensor_msgs.msg import LaserScan
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "ALVARADO_PAZ"
 
 def attraction_force(robot_x, robot_y, goal_x, goal_y):
     #

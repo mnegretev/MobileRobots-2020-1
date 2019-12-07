@@ -16,7 +16,7 @@ import math
 from nav_msgs.msg import Path
 from geometry_msgs.msg import Twist
 
-NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
+NAME = "ALVARADO_PAZ"
 
 def callback_follow_path(path):
     print "Following path with " + str(len(path.poses)) + " points..."
