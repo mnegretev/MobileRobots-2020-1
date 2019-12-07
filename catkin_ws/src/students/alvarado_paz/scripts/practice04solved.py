@@ -16,7 +16,7 @@ import math
 from nav_msgs.msg import Path
 from geometry_msgs.msg import Twist
 
-NAME = "ALVARADO_PAZ"
+NAME = "APELLIDO_PATERNO_APELLIDO_MATERNO"
 
 def callback_follow_path(path):
     print "Following path with " + str(len(path.poses)) + " points..."
@@ -41,40 +41,24 @@ def callback_follow_path(path):
     # pub_cmd_vel.publish(cmd_vel)
     # where cmd_vel is the Twist message returned by the calculate_control function.
     #
-    #
-    # Use a while loop like this one to keep the robot moving while the
-    # goal point is not reached.
-    # Add as many conditions as you need.
-    #
-    # while not rospy.is_shutdown():
-    #     loop.sleep()
-    #
-    #
-    for i in range(0,len(path.poses) - 1):
-
-        goal_x  =  path.poses[i].pose.position.x
-        goal_y  =  path.poses[i].pose.position.y
-       
+    robot_x, robot_y, robot_a = get_robot_pose(listener)
+    global_goal_x = path.poses[len(path.poses)-1].pose.position.x
+    global_goal_y = path.poses[len(path.poses)-1].pose.position.y
+    error_global = math.sqrt((global_goal_x - robot_x)*(global_goal_x-robot_x) + (global_goal_y-robot_y)*(global_goal_y-robot_y))
+    counter=0
+    goal_x = path.poses[counter].pose.position.x
+    goal_y = path.poses[counter].pose.position.y
+    error_local = math.sqrt((goal_x - robot_x)*(goal_x-robot_x) + (goal_y-robot_y)*(goal_y-robot_y))
+    while not rospy.is_shutdown() and abs(error_global) > 0.05 and counter < len(path.poses):
+        goal_x = path.poses[counter].pose.position.x
+        goal_y = path.poses[counter].pose.position.y
+        if error_local < 0.3:
+            counter += 1
+        pub_cmd_vel.publish(calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y))
         robot_x, robot_y, robot_a = get_robot_pose(listener)
-        dif_x = goal_x - robot_x
-        dif_y = goal_y - robot_y
-        # dist euclidiana
-        dist_eu = math.sqrt((dif_y)**2 + (dif_x)**2)
-        
-        while dist_eu > 0.2:
-            
-            #print (dist_eu)
-            cmd_vel = calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y)
-            pub_cmd_vel.publish(cmd_vel)
-            
-            loop.sleep()
-
-            robot_x, robot_y, robot_a = get_robot_pose(listener)
-            dif_x = goal_x - robot_x
-            dif_y = goal_y - robot_y
-            # dist euclidiana actualizada 
-            dist_eu = math.sqrt((dif_y)**2 + (dif_x)**2)
-
+        error_global = math.sqrt((global_goal_x-robot_x)*(global_goal_x-robot_x) + (global_goal_y-robot_y)*(global_goal_y-robot_y))
+        error_local  = math.sqrt((goal_x - robot_x)*(goal_x-robot_x) + (goal_y-robot_y)*(goal_y-robot_y))
+        loop.sleep()
     print "Global goal point reached"
 
 def get_robot_pose(listener):
@@ -105,33 +89,22 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     # and return it (check online documentation for the Twist message).
     # Remember to keep error angle in the interval (-pi,pi]
     #
-    v_max = 0.5
-    w_max = 0.5
-    alpha = 0.5
-    beta  = 0.2
-    PI    = 3.14159265359
-
-    error_a = math.atan2(goal_y - robot_y, goal_x - robot_x) - robot_a
-
-    #print "e_a: " + str(error_a) + "a_r: " + str(robot_a)
-    # Se revisa el angulo de giro para girar en el sentido mas proximo al angulo deseado
-    if error_a < -PI:
-        error_a += 2*PI
-    elif error_a > PI:
-        error_a -= 2*PI        
-
-    v = v_max*math.exp(-error_a*error_a/alpha)
-
-    w = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
-
-    # print "v-l:" + str(v) + "v-ang:" + str(w)
-
+    v_max = 0.8
+    w_max = 1.0
+    alpha = 0.2
+    beta  = 0.5
+    error_x = goal_x - robot_x
+    error_y = goal_y - robot_y
+    error_a = math.atan2(error_y, error_x) - robot_a
+    error_d = math.sqrt(error_x*error_x + error_y*error_y)
+    if error_a >  math.pi:
+        error_a -= 2*math.pi
+    if error_a < -math.pi:
+        error_a += 2*math.pi
+    v_max = min(v_max, error_d)
     cmd_vel = Twist()
-    # cmd_vel.linear.x  =  #Assign the calculated linear speed v 
-    # cmd_vel.angular.z =  #Assign the calculated angular speed w
-    cmd_vel.linear.x  = v
-    cmd_vel.angular.z = w
-
+    cmd_vel.linear.x  = v_max*math.exp(-error_a*error_a/alpha)
+    cmd_vel.angular.z = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
     return cmd_vel
 
 def main():
