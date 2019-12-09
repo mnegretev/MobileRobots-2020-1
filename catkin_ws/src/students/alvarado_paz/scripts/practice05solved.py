@@ -146,6 +146,12 @@ def calculate_control(robot_x, robot_y, robot_a, goal_x, goal_y):
     v_max = min(v_max, error_d)
     cmd_vel = Twist()
     cmd_vel.linear.x  = v_max*math.exp(-error_a*error_a/alpha)
+    #
+    #rfx, rfy = rejection_force (robot_x, robot_y, robot_a, laser_readings)
+    #m_rej_f = math.sqrt(rfx*rfx + rfy*rfy)
+    #cte_p = 0.3
+    #cmd_vel.linear.y  = cte_p*m_rej_f
+    #
     cmd_vel.angular.z = w_max*(2/(1 + math.exp(-error_a/beta)) - 1)
     return cmd_vel
 

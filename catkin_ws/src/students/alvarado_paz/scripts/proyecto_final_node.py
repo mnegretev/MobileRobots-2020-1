@@ -92,6 +92,14 @@ def control(smooth_path): #
 	pub_smooth_path = rospy.Publisher('/navigation/simple_move/follow_path', Path, queue_size=1)
 	pub_smooth_path.publish(smooth_path)
 
+#def pot_fields(robot_x, robot_y, robot_a, goal, laser_readings):
+#	pub_laser_escan = rospy.Publisher('/hardware/scan', LaserScan, queue_size=1)
+#	pub_pf = rospy.Subscriber('/navigation/obs_avoidance/pot_fields_goal', PoseStamped, queue_size=1)
+#	pub_laser_escan.publish(laser_readings)
+#	pub_pf.publish(pf)
+
+
+
 def main():
 	print "PROYECTO FINAL - " + NAME
 	rospy.init_node('proyecto_final_node')
